@@ -1,0 +1,34 @@
+{% extends 'base2.html' %}
+{% load static %}
+
+{% block title %}Espace Consultation{% endblock %}
+
+{% block navbar_buttons %}
+<a href="{% url 'home' %}" class="mr-4 text-blue-600 hover:text-blue-800">Accueil</a>
+<form method="POST" action="{% url 'logout' %}" class="inline">
+  {% csrf_token %}
+  <button type="submit" class="text-red-600 hover:text-red-800">Déconnecter</button>
+</form>
+{% endblock %}
+
+{% block content %}
+
+<div class="flex flex-col items-center justify-center h-full">
+  {% comment %} <h1 class="text-4xl font-bold">Espace Consultation</h1> {% endcomment %}
+  <!-- React App Container -->
+  <script>
+    window.currentUser = "{{ request.user.username }}";  // Injecte le nom d'utilisateur actuel
+    window.memberId = "{{ membre.id }}";  // Injecte l'ID du membre (sélectionné ou connecté)
+  </script>
+  <div id="react-app-chat" class="h-full mt-40"      
+  style=" 
+  width: 800px;
+  margin: 25px auto;
+  box-sizing: border-box;"
+></div>
+</div>
+
+<!-- Include the Vite-built React app -->
+<link rel="stylesheet" href="{% static 'react/assets/index-c4f21c57.css' %}">
+<script type="module" src="{% static 'react/assets/index-83a8f13e.js' %}"></script>
+{% endblock %}

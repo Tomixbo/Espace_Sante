@@ -1,0 +1,17 @@
+{% extends 'base2.html' %}
+
+{% block title %}Espace Membre{% endblock %}
+
+{% block navbar_buttons %}
+<a href="{% url 'consultation' %}" class="mr-4 text-blue-600 hover:text-blue-800">Consulter</a>
+<form method="POST" action="{% url 'logout' %}" class="inline">
+  {% csrf_token %}
+  <button type="submit" class="text-red-600 hover:text-red-800">Déconnecter</button>
+</form>
+{% endblock %}
+
+{% block content %}
+<div class="flex flex-col items-center justify-center h-full">
+  <h1 class="text-4xl font-bold">Espace Membre</h1>
+</div>
+{% endblock %}
