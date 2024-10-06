@@ -1,5 +1,5 @@
 # Espace_Sante
-Web platform in the health field
+Web platform in the health field. Read the file [a relative link](Project_description.md) for more information.
 
 # Environment and dependencies installation
 ```
