@@ -5,7 +5,7 @@
 
 - ANDRIAMAHATANA Tombo H.
 - NOMENJANAHARY Iandrianina
-- Institution: National Higher Institute of Computer Science (INSI)
+- Institution: Institut National Supérieur d'Informatique (INSI) from Antananarivo/Madagascar
 
 ## Context and Challenges
 
