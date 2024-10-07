@@ -4,8 +4,21 @@
 {% block title %}Espace Consultation{% endblock %}
 
 {% block navbar_buttons %}
-<a href="{% url 'home' %}" class="mr-4 text-blue-600 hover:text-blue-800">Accueil</a>
-<form method="POST" action="{% url 'logout' %}" class="inline">
+<!-- Add active class conditionally based on the current URL -->
+<a href="{% url 'liste_consultations' %}"
+   class="h-full px-4 flex items-center border-r border-l 
+          {% if request.path == '/liste_consultations/' %}
+              bg-blue-600 text-white pointer-events-none 
+          {% else %}
+              text-blue-600 hover:bg-blue-500 hover:text-white transition 
+          {% endif %}">
+  Consultations
+</a>
+{% endblock %}
+
+{% block navbar_right %}
+<span class="text-gray-700">Bonjour, {{ user.username }}</span>
+<form method="POST" action="{% url 'logout' %}" class="inline border-l pl-4">
   {% csrf_token %}
   <button type="submit" class="text-red-600 hover:text-red-800">Déconnecter</button>
 </form>

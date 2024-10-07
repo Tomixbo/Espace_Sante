@@ -1,0 +1,142 @@
+{% extends 'base2.html' %}
+
+{% block title %}Espace Médecin{% endblock %}
+
+{% block navbar_buttons %}
+<!-- Add active class conditionally based on the current URL -->
+<a href="{% url 'liste_consultations' %}"
+   class="h-full px-4 flex items-center border-r border-l 
+          {% if request.path == '/liste_consultations/' %}
+              bg-blue-600 text-white pointer-events-none 
+          {% else %}
+              text-blue-600 hover:bg-blue-500 hover:text-white transition 
+          {% endif %}">
+  Consultations
+</a>
+{% endblock %}
+
+{% block navbar_right %}
+<span class="text-gray-700">Bonjour, {{ user.username }}</span>
+<form method="POST" action="{% url 'logout' %}" class="inline border-l pl-4">
+  {% csrf_token %}
+  <button type="submit" class="text-red-600 hover:text-red-800">Déconnecter</button>
+</form>
+{% endblock %}
+
+{% block content %}
+<div class="flex flex-col items-center justify-start max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-20">
+
+  <!-- Titre principal centré en haut de la page -->
+  <div class="w-full flex justify-center">
+    <h1 class="text-4xl font-bold text-gray-900 text-center">Espace Médecin</h1>
+  </div>
+
+  <!-- Conteneur du tableau -->
+  <div class="w-full bg-white shadow-lg rounded-lg overflow-hidden flex flex-col items-center">
+    <div class="w-full  py-6 px-8 flex justify-center">
+      <h2 class="text-3xl font-bold text-center">Liste des Membres (Patients)</h2>
+    </div>
+    
+    <!-- Section du tableau avec disposition flex -->
+    <div class="w-full p-8">
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-100">
+            <tr class="text-left text-xl text-gray-700 uppercase tracking-wider">
+              <th class="px-6 py-3">Nom d'utilisateur</th>
+              <th class="px-6 py-3 text-center">Status</th>
+              <th class="px-6 py-3 text-center">Action</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            {% for membre in membres %}
+            <tr class="hover:bg-blue-50 transition duration-200 ease-in-out">
+              <td class="px-6 py-4 text-lg text-gray-900 font-semibold">
+                {{ membre.username }}
+              </td>
+              <td class="px-6 py-4 text-lg text-gray-900 font-semibold text-center">
+                <span id="status-{{ membre.id }}" class="{% if membre.is_online %}text-green-600{% else %}text-red-600{% endif %} ">
+                  {% if membre.is_online %}
+                    En ligne
+                  {% else %}
+                    Hors ligne
+                  {% endif %}
+                </span>
+              </td>
+              <td class="px-6 py-4 flex justify-center">
+                <a id="chat-button-{{ membre.id }}"
+                   href="{% if membre.is_online %}{% url 'chat_with_member' membre.id %}{% else %}#{% endif %}"
+                   class="bg-blue-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-blue-700 transition {% if not membre.is_online %}opacity-50 cursor-not-allowed{% endif %}">
+                  Ouvrir Chat
+                </a>
+              </td>
+              
+              
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="2" class="px-6 py-4 text-center text-lg text-gray-500">
+                Aucun membre trouvé.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- WebSocket to listen for user status updates -->
+<script>
+  const userStatusSocket = new WebSocket(
+    'ws://' + window.location.host + '/ws/user-status/'
+  );
+  
+  // Listen for messages from the WebSocket
+  userStatusSocket.onmessage = function(event) {
+    const data = JSON.parse(event.data);
+  
+    // Get the status element for the specific user whose status has changed
+    const statusElement = document.getElementById(`status-${data.user_id}`);
+    const chatButton = document.getElementById(`chat-button-${data.user_id}`);
+  
+    const userStatusSocket = new WebSocket(
+      'ws://' + window.location.host + '/ws/user-status/'
+    );
+    
+    // Listen for messages from the WebSocket
+    userStatusSocket.onmessage = function(event) {
+      const data = JSON.parse(event.data);
+    
+      // Get the status element for the specific user whose status has changed
+      const statusElement = document.getElementById(`status-${data.user_id}`);
+      const chatButton = document.getElementById(`chat-button-${data.user_id}`);
+    
+      if (statusElement && chatButton) {
+        // Update the status text and color based on whether the user is online
+        if (data.is_online) {
+          statusElement.textContent = 'En ligne';
+          statusElement.classList.remove('text-red-600');
+          statusElement.classList.add('text-green-600');
+    
+          // Enable the chat link and remove the disabled appearance
+          chatButton.href = `/chat/${data.user_id}/`;  // Set the chat URL
+          chatButton.classList.remove('opacity-50', 'cursor-not-allowed');  // Remove the disabled appearance
+        } else {
+          statusElement.textContent = 'Hors ligne';
+          statusElement.classList.remove('text-green-600');
+          statusElement.classList.add('text-red-600');
+    
+          // Disable the chat link and add the disabled appearance
+          chatButton.href = '#';  // Set href to '#' to disable the link
+          chatButton.classList.add('opacity-50', 'cursor-not-allowed');  // Add disabled appearance
+        }
+      }
+    };
+    
+  };
+  
+</script>
+{% endblock %}

@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.utils import timezone
 
 class CustomUser(AbstractUser):
     USER_TYPE_CHOICES = (
@@ -8,6 +9,10 @@ class CustomUser(AbstractUser):
     )
     
     user_type = models.CharField(max_length=10, choices=USER_TYPE_CHOICES, default='membre')
-
-    # Ajoutez d'autres champs si nécessaire (ex: phone_number)
     phone_number = models.CharField(max_length=15, blank=True)
+
+    # Track whether the user is online
+    is_online = models.BooleanField(default=False)
+
+    # Track the last time the user was seen online
+    last_seen = models.DateTimeField(null=True, blank=True)

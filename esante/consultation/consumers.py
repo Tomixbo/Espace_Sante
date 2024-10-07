@@ -4,6 +4,8 @@ from datetime import datetime
 from channels.db import database_sync_to_async
 from .models import ChatRoom, Message  # Make sure your models are imported correctly
 from django.contrib.auth import get_user_model
+from django.utils import timezone
+from channels.layers import get_channel_layer
 
 User = get_user_model()
 
@@ -110,3 +112,103 @@ class ChatConsumer(AsyncWebsocketConsumer):
             for msg in messages
         ]
 
+class HeartbeatConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        # Accept the WebSocket connection
+        await self.accept()
+
+        # If user is authenticated, mark them as online
+        user = self.scope["user"]
+        if user.is_authenticated:
+            await self.update_user_status(user, True)
+
+    async def disconnect(self, close_code):
+        # When the WebSocket disconnects, mark the user as offline
+        user = self.scope["user"]
+        if user.is_authenticated:
+            await self.update_user_status(user, False)
+
+    async def receive(self, text_data):
+        # Handle heartbeat message from client (received every few seconds)
+        user = self.scope["user"]
+        if user.is_authenticated:
+            # Update the last seen and ensure they remain online
+            await self.update_user_status(user, True)
+    
+    # Function to mark user offline after timeout (e.g., if no heartbeats)
+    @database_sync_to_async
+    def mark_offline_after_timeout(self, user, timeout):
+        # This will run after the timeout period
+        from datetime import timedelta
+        import time
+
+        # Wait for the timeout period (e.g., 60 seconds)
+        time.sleep(timeout)
+
+        # Re-fetch the user from the database to check if they are still active
+        refreshed_user = User.objects.get(pk=user.pk)
+        if refreshed_user.last_seen and timezone.now() - refreshed_user.last_seen > timedelta(seconds=timeout):
+            # If the last_seen time is older than the timeout, mark them as offline
+            refreshed_user.is_online = False
+            refreshed_user.save()
+
+    # Function to update user status and last seen
+    async def update_user_status(self, user, is_online):
+            # Update the user status asynchronously
+            await self.async_update_user_status(user, is_online)
+
+            # Notify the WebSocket group about the user status change
+            channel_layer = get_channel_layer()  # No need to await this, it's synchronous
+            await channel_layer.group_send(
+                'user_status_updates',  # The group name for broadcasting user status updates
+                {
+                    'type': 'user_status_update',
+                    'user_id': user.id,
+                    'is_online': is_online,
+                }
+            )
+
+    @database_sync_to_async
+    def async_update_user_status(self, user, is_online):
+        user.is_online = is_online
+        if is_online:
+            user.last_seen = timezone.now()
+        user.save()
+
+import json
+from channels.generic.websocket import AsyncWebsocketConsumer
+from channels.db import database_sync_to_async
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+class UserStatusConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        # Join a group to listen for status updates
+        self.room_group_name = 'user_status_updates'
+
+        await self.channel_layer.group_add(
+            self.room_group_name,
+            self.channel_name
+        )
+
+        await self.accept()
+
+    async def disconnect(self, close_code):
+        # Leave the group when the WebSocket disconnects
+        await self.channel_layer.group_discard(
+            self.room_group_name,
+            self.channel_name
+        )
+
+    async def receive(self, text_data):
+        # This consumer only sends notifications, so no need to handle incoming messages
+        pass
+
+    # Handler for user status update notifications
+    async def user_status_update(self, event):
+        # Send the user status update to the WebSocket
+        await self.send(text_data=json.dumps({
+            'user_id': event['user_id'],
+            'is_online': event['is_online'],
+        }))
