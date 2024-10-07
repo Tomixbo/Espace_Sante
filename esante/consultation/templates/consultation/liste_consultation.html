@@ -15,13 +15,7 @@
 </a>
 {% endblock %}
 
-{% block navbar_right %}
-<span class="text-gray-700">Bonjour, {{ user.username }}</span>
-<form method="POST" action="{% url 'logout' %}" class="inline border-l pl-4">
-  {% csrf_token %}
-  <button type="submit" class="text-red-600 hover:text-red-800">Déconnecter</button>
-</form>
-{% endblock %}
+
 
 {% block content %}
 <div class="flex flex-col items-center justify-start max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-20">

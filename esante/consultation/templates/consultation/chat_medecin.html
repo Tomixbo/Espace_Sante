@@ -17,7 +17,7 @@
 {% endblock %}
 
 {% block navbar_right %}
-<span class="text-gray-700">Bonjour, {{ user.username }}</span>
+<span class="text-gray-700">Bonjour, {{ user.username|title }}</span>
 <form method="POST" action="{% url 'logout' %}" class="inline border-l pl-4">
   {% csrf_token %}
   <button type="submit" class="text-red-600 hover:text-red-800">Déconnecter</button>
@@ -42,6 +42,6 @@
 </div>
 
 <!-- Include the Vite-built React app -->
-<link rel="stylesheet" href="{% static 'react/assets/index-c4f21c57.css' %}">
-<script type="module" src="{% static 'react/assets/index-83a8f13e.js' %}"></script>
+<link rel="stylesheet" href="{% static 'react/assets/index-01.css' %}">
+<script type="module" src="{% static 'react/assets/index-01.js' %}"></script>
 {% endblock %}
