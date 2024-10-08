@@ -9,9 +9,13 @@ from channels.layers import get_channel_layer
 
 User = get_user_model()
 
-from channels.generic.websocket import AsyncWebsocketConsumer
 import json
+from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
+from .models import ChatRoom, Message  # Assurez-vous que vos modèles sont bien importés
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -22,19 +26,47 @@ class ChatConsumer(AsyncWebsocketConsumer):
         # Create or retrieve the chat room
         self.chat_room = await self.get_chat_room(self.membre_id)
 
+        # Initialize or retrieve the list of doctors and member status for this room
+        if not hasattr(self.channel_layer, "doctors_in_room"):
+            self.channel_layer.doctors_in_room = {}
+        if not hasattr(self.channel_layer, "member_status"):
+            self.channel_layer.member_status = {}
+
+        if self.room_group_name not in self.channel_layer.doctors_in_room:
+            self.channel_layer.doctors_in_room[self.room_group_name] = []
+        if self.room_group_name not in self.channel_layer.member_status:
+            self.channel_layer.member_status[self.room_group_name] = {'status': 'disconnected'}
+
         # Add user to the WebSocket group
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         await self.accept()
 
-        # Send the chat room member's name to the connected user
-        membre_name = await self.get_membre_name()  # Fetch member name asynchronously
+        # If the connected user is a member, update their status to "active"
+        if user.is_authenticated and user.user_type == 'membre':
+            self.channel_layer.member_status[self.room_group_name] = {'name': user.username, 'status': 'active'}
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'member_active',
+                    'member_name': user.username
+                }
+            )
+
+        # Send the chat room member's name to the connected user and doctors in the room
+        membre_name = await self.get_membre_name()
         await self.send(text_data=json.dumps({
             'type': 'room_info',
-            'membre_name': membre_name,  # Send the name of the member
+            'membre_name': membre_name,
+            'doctors_in_room': self.channel_layer.doctors_in_room[self.room_group_name],
+            'member_status': self.channel_layer.member_status[self.room_group_name]  # Send member status
         }))
 
         # Notify other users that a doctor has joined
         if user.is_authenticated and user.user_type == 'medecin':
+            doctor_info = {'name': user.username, 'status': 'active'}
+            if doctor_info not in self.channel_layer.doctors_in_room[self.room_group_name]:
+                self.channel_layer.doctors_in_room[self.room_group_name].append(doctor_info)
+
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {
@@ -54,8 +86,22 @@ class ChatConsumer(AsyncWebsocketConsumer):
         user = self.scope["user"]
         await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
 
+        # If the user is a member, set their status to "disconnected"
+        if user.is_authenticated and user.user_type == 'membre':
+            self.channel_layer.member_status[self.room_group_name] = {'name': user.username, 'status': 'disconnected'}
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'member_disconnected',
+                    'member_name': user.username
+                }
+            )
+
         # Notify other users that the doctor has left
         if user.is_authenticated and user.user_type == 'medecin':
+            self.channel_layer.doctors_in_room[self.room_group_name] = [
+                doc for doc in self.channel_layer.doctors_in_room[self.room_group_name] if doc['name'] != user.username
+            ]
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {
@@ -66,13 +112,59 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data):
         user = self.scope["user"]
-        sender = user.username if user.is_authenticated else "Anonymous"
-
         text_data_json = json.loads(text_data)
 
+        # Manage the heartbeat or status changes based on the message type
         if text_data_json.get('type') == 'heartbeat':
-            # Handle the heartbeat signal
             await self.handle_heartbeat(user)
+
+        elif text_data_json.get('type') == 'active':
+            # Update the status to active (for members or doctors)
+            if user.user_type == 'membre':
+                self.channel_layer.member_status[self.room_group_name] = {'name': user.username, 'status': 'active'}
+                await self.channel_layer.group_send(
+                    self.room_group_name,
+                    {
+                        'type': 'member_active',
+                        'member_name': user.username
+                    }
+                )
+            else:
+                self.channel_layer.doctors_in_room[self.room_group_name] = [
+                    {**doc, 'status': 'active'} if doc['name'] == user.username else doc
+                    for doc in self.channel_layer.doctors_in_room[self.room_group_name]
+                ]
+                await self.channel_layer.group_send(
+                    self.room_group_name,
+                    {
+                        'type': 'doctor_active',
+                        'doctor_name': user.username
+                    }
+                )
+
+        elif text_data_json.get('type') == 'inactive':
+            # Update the status to inactive (for members or doctors)
+            if user.user_type == 'membre':
+                self.channel_layer.member_status[self.room_group_name] = {'name': user.username, 'status': 'inactive'}
+                await self.channel_layer.group_send(
+                    self.room_group_name,
+                    {
+                        'type': 'member_inactive',
+                        'member_name': user.username
+                    }
+                )
+            else:
+                self.channel_layer.doctors_in_room[self.room_group_name] = [
+                    {**doc, 'status': 'inactive'} if doc['name'] == user.username else doc
+                    for doc in self.channel_layer.doctors_in_room[self.room_group_name]
+                ]
+                await self.channel_layer.group_send(
+                    self.room_group_name,
+                    {
+                        'type': 'doctor_inactive',
+                        'doctor_name': user.username
+                    }
+                )
 
         elif 'message' in text_data_json:
             message_content = text_data_json.get('message', '')
@@ -90,6 +182,24 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     'timestamp': message.timestamp.isoformat()
                 }
             )
+
+    async def member_active(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'member_active',
+            'member_name': event['member_name'],
+        }))
+
+    async def member_inactive(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'member_inactive',
+            'member_name': event['member_name'],
+        }))
+
+    async def member_disconnected(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'member_disconnected',
+            'member_name': event['member_name'],
+        }))
 
     async def chat_message(self, event):
         await self.send(text_data=json.dumps({
@@ -110,10 +220,20 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'doctor_name': event['doctor_name'],
         }))
 
-    # Handle the heartbeat signal (sent by the client every few seconds)
+    async def doctor_active(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'doctor_active',
+            'doctor_name': event['doctor_name'],
+        }))
+
+    async def doctor_inactive(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'doctor_inactive',
+            'doctor_name': event['doctor_name'],
+        }))
+
     async def handle_heartbeat(self, user):
         if user.is_authenticated and user.user_type == 'medecin':
-            # Optionally, you can log the heartbeat or update user activity in the database
             print(f"Received heartbeat from doctor: {user.username}")
 
     @database_sync_to_async
