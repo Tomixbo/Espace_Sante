@@ -9,14 +9,6 @@ from channels.layers import get_channel_layer
 
 User = get_user_model()
 
-import json
-from channels.generic.websocket import AsyncWebsocketConsumer
-from channels.db import database_sync_to_async
-from .models import ChatRoom, Message  # Assurez-vous que vos modèles sont bien importés
-from django.contrib.auth import get_user_model
-
-User = get_user_model()
-
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.membre_id = self.scope['url_route']['kwargs']['membre_id']
@@ -51,20 +43,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     'member_name': user.username
                 }
             )
-
-        # Send the chat room member's name to the connected user and doctors in the room
-        membre_name = await self.get_membre_name()
-        await self.send(text_data=json.dumps({
-            'type': 'room_info',
-            'membre_name': membre_name,
-            'doctors_in_room': self.channel_layer.doctors_in_room[self.room_group_name],
-            'member_status': self.channel_layer.member_status[self.room_group_name]  # Send member status
-        }))
+            # Marquer les messages non vus comme vus
+            await self.mark_messages_as_seen_for_member()
 
         # Notify other users that a doctor has joined
         if user.is_authenticated and user.user_type == 'medecin':
             doctor_info = {'name': user.username, 'status': 'active'}
-            if doctor_info not in self.channel_layer.doctors_in_room[self.room_group_name]:
+
+            # Vérifie si le médecin est déjà dans la liste avant de l'ajouter
+            if not any(doc['name'] == user.username for doc in self.channel_layer.doctors_in_room[self.room_group_name]):
                 self.channel_layer.doctors_in_room[self.room_group_name].append(doctor_info)
 
             await self.channel_layer.group_send(
@@ -74,6 +61,18 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     'doctor_name': user.username
                 }
             )
+            # Marquer les messages non vus comme vus
+            await self.mark_messages_as_seen_for_doctor()
+
+
+        # Send the chat room member's name to the connected user and doctors in the room
+        membre_name = await self.get_membre_name()
+        await self.send(text_data=json.dumps({
+            'type': 'room_info',
+            'membre_name': membre_name,
+            'doctors_in_room': self.channel_layer.doctors_in_room[self.room_group_name],
+            'member_status': self.channel_layer.member_status[self.room_group_name]  # Send member status
+        }))
 
         # Load the chat history and send it to the client
         messages = await self.get_chat_history()
@@ -129,7 +128,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
                         'member_name': user.username
                     }
                 )
-            else:
+                # Appeler la fonction pour marquer les messages des médecins comme vus par le membre
+                await self.mark_messages_as_seen_for_member()
+
+            elif user.user_type == 'medecin':
                 self.channel_layer.doctors_in_room[self.room_group_name] = [
                     {**doc, 'status': 'active'} if doc['name'] == user.username else doc
                     for doc in self.channel_layer.doctors_in_room[self.room_group_name]
@@ -141,6 +143,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
                         'doctor_name': user.username
                     }
                 )
+                # Appeler la fonction pour marquer les messages du membre comme vus par le médecin
+                await self.mark_messages_as_seen_for_doctor()
 
         elif text_data_json.get('type') == 'inactive':
             # Update the status to inactive (for members or doctors)
@@ -165,23 +169,104 @@ class ChatConsumer(AsyncWebsocketConsumer):
                         'doctor_name': user.username
                     }
                 )
-
         elif 'message' in text_data_json:
             message_content = text_data_json.get('message', '')
 
             # Save the message to the database
             message = await self.save_message(user, message_content)
 
-            # Send the message to the group for this specific chat room
+            # Envoie le message avec le type de l'expéditeur
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {
                     'type': 'chat_message',
                     'message': message.content,
+                    'message_id': message.id,  # Ajoute l'ID du message
                     'sender': message.sender.username,
-                    'timestamp': message.timestamp.isoformat()
+                    'sender_type': 'medecin' if user.user_type == 'medecin' else 'membre',  # Ajoute le type de l'expéditeur
+                    'timestamp': message.timestamp.isoformat(),
+                    'seen': message.seen
                 }
             )
+
+
+
+    async def check_message_seen_on_receive(self, user, event):
+        """
+        Vérifie immédiatement si le message doit être marqué comme vu lors de la réception du message.
+        """
+        # Si le message vient d'un membre, vérifier si les médecins sont actifs
+        if user.user_type == 'membre':
+            doctors_active = any(doc['status'] == 'active' for doc in self.channel_layer.doctors_in_room[self.room_group_name])
+            if doctors_active:
+                await self.mark_messages_as_seen_for_member()
+
+        # Si le message vient d'un médecin, vérifier si le membre est actif
+        elif user.user_type == 'medecin':
+            member_status = self.channel_layer.member_status[self.room_group_name]
+            if member_status['status'] == 'active':
+                await self.mark_messages_as_seen_for_doctor()
+
+    async def mark_messages_as_seen_for_doctor(self):
+        """
+        Marque les messages envoyés par le membre comme vus par un médecin actif
+        et envoie une mise à jour via WebSocket.
+        """
+        unseen_messages = await database_sync_to_async(
+            lambda: list(self.chat_room.messages.filter(sender__user_type='membre', seen=False))
+        )()
+
+        for message in unseen_messages:
+            message.seen = True
+            await database_sync_to_async(message.save)()
+
+            # Envoie une mise à jour WebSocket pour notifier que le message a été vu
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'message_seen',
+                    'message_id': message.id,  # Envoie l'ID du message vu
+                    'seen': True
+                }
+            )
+        # print(f"Messages envoyés par le membre marqués comme vus.")
+
+    async def mark_messages_as_seen_for_member(self):
+        """
+        Marque les messages envoyés par les médecins comme vus par le membre actif
+        et envoie une mise à jour via WebSocket.
+        """
+        unseen_messages = await database_sync_to_async(
+            lambda: list(self.chat_room.messages.filter(sender__user_type='medecin', seen=False))
+        )()
+
+        for message in unseen_messages:
+            message.seen = True
+            await database_sync_to_async(message.save)()
+
+            # Envoie une mise à jour WebSocket pour notifier que le message a été vu
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'message_seen',
+                    'message_id': message.id,  # Envoie l'ID du message vu
+                    'seen': True
+                }
+            )
+        # print(f"Messages envoyés par les médecins marqués comme vus.")
+
+
+    async def message_seen(self, event):
+        """
+        Gère la mise à jour lorsqu'un message est marqué comme vu.
+        """
+        await self.send(text_data=json.dumps({
+            'type': 'message_seen',
+            'message_id': event['message_id'],
+            'seen': event['seen']
+        }))
+
+
 
     async def member_active(self, event):
         await self.send(text_data=json.dumps({
@@ -202,11 +287,31 @@ class ChatConsumer(AsyncWebsocketConsumer):
         }))
 
     async def chat_message(self, event):
+        """
+        Gestion de la réception d'un message par le WebSocket.
+        """
+        # Envoyer le message reçu au client
         await self.send(text_data=json.dumps({
             'message': event['message'],
+            'message_id': event['message_id'],
             'sender': event['sender'],
             'timestamp': event['timestamp'],
+            'seen': event.get('seen', False)  # Statut vu/non vu
         }))
+        
+        user = self.scope["user"]
+        
+        # Vérifie si l'utilisateur est bien le destinataire du message avant de marquer comme vu
+        if user.username != event['sender']:  # Le destinataire est différent de l'expéditeur
+            # Si le message vient d'un membre, vérifie si les médecins sont actifs
+            if event['sender_type'] == 'membre' and any(doc['status'] == 'active' for doc in self.channel_layer.doctors_in_room[self.room_group_name]):
+                await self.mark_messages_as_seen_for_doctor()
+
+            # Si le message vient d'un médecin, vérifie si le membre est actif
+            elif event['sender_type'] == 'medecin' and self.channel_layer.member_status[self.room_group_name]['status'] == 'active':
+                await self.mark_messages_as_seen_for_member()
+
+
 
     async def doctor_joined(self, event):
         await self.send(text_data=json.dumps({
@@ -234,7 +339,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def handle_heartbeat(self, user):
         if user.is_authenticated and user.user_type == 'medecin':
-            print(f"Received heartbeat from doctor: {user.username}")
+            # print(f"Received heartbeat from doctor: {user.username}")
+            pass
 
     @database_sync_to_async
     def get_chat_room(self, membre_id):
@@ -247,8 +353,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def save_message(self, sender, content):
-        if not sender.is_authenticated:
-            sender = User.objects.get(username='Anonymous')
         message = Message.objects.create(room=self.chat_room, sender=sender, content=content)
         return message
 
@@ -256,9 +360,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
     def get_chat_history(self):
         messages = self.chat_room.messages.all().order_by('timestamp')
         return [
-            {'message': msg.content, 'sender': msg.sender.username, 'timestamp': msg.timestamp.isoformat()}
-            for msg in messages
-        ]
+        {
+            'message_id': msg.id,  # Ajoute l'ID du message
+            'message': msg.content,
+            'sender': msg.sender.username,
+            'timestamp': msg.timestamp.isoformat(),
+            'seen': msg.seen
+        }
+        for msg in messages
+    ]
 
 
 class HeartbeatConsumer(AsyncWebsocketConsumer):

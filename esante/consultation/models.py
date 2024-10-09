@@ -14,6 +14,7 @@ class Message(models.Model):
     sender = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     content = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
+    seen = models.BooleanField(default=False)  
 
     def __str__(self):
         return f"Message from {self.sender.username} in {self.room.id} at {self.timestamp}"
