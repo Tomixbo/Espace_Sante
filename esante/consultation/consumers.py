@@ -6,6 +6,7 @@ from .models import ChatRoom, Message  # Make sure your models are imported corr
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from channels.layers import get_channel_layer
+import aiohttp 
 
 User = get_user_model()
 
@@ -169,6 +170,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                         'doctor_name': user.username
                     }
                 )
+
         elif 'message' in text_data_json:
             message_content = text_data_json.get('message', '')
 
@@ -286,6 +288,91 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'member_name': event['member_name'],
         }))
 
+    @database_sync_to_async
+    def get_or_create_bot_user(self):
+        """
+        Retrieve or create the bot user in the database.
+        This user will act as the AI assistant when no doctors are available.
+        """
+        bot_username = 'Bot01'
+        
+        # Attempt to retrieve the bot user from the database
+        bot_user, created = User.objects.get_or_create(
+            username=bot_username,
+            defaults={
+                'first_name': 'Assistant',
+                'last_name': 'IA',
+                'email': 'bot01@example.com',
+                'is_active': True,  # Ensure the bot is marked as active
+                'user_type': 'bot',  # Ensure the bot has a proper user type, assuming you have a 'user_type' field
+            }
+        )
+        
+        return bot_user
+    
+    @database_sync_to_async
+    def save_message_from_ai(self, content):
+        bot_user = User.objects.get(username='Bot01')  # Get the bot user
+        message = Message.objects.create(room=self.chat_room, sender=bot_user, content=content)
+        return message
+    
+    @database_sync_to_async
+    def get_last_40_messages(self):
+        """
+        Retrieve the last 40 messages from the chat history (combining member, doctor, and AI assistant messages).
+        """
+        messages = list(self.chat_room.messages.all().order_by('-timestamp')[:40])  # Get up to 40 messages
+        return messages[::-1]  # Reverse the order to preserve chronology
+
+    
+    async def get_ai_response(self, user_message):
+        """
+        Send the user message to the AI assistant (Ollama API) and return its response.
+        Sends context and limits history to 40 messages.
+        """
+
+        # Fetch the last 40 messages to form a context
+        messages = await self.get_last_40_messages()
+
+        async def get_message_info(msg):
+            sender_type = await database_sync_to_async(lambda: msg.sender.user_type)()
+            return {
+                "role": "user" if sender_type == 'membre' else "assistant" if sender_type == 'bot' else "doctor",
+                "content": msg.content
+            }
+
+        # Prepare the message payload according to the template provided for llama3.1:latest
+        formatted_messages = [await get_message_info(msg) for msg in messages]
+
+        payload = {
+            "model": "llama3.1:latest",
+            "messages": [
+                {
+                    "role": "system",
+                    "content": (
+                        "You are an assistant in a healthcare consultation system. Your role is to provide preliminary assessments based on the user's symptoms and help them understand medical information. First, ask for their symptoms if not provided. Confirm the symptoms with the user, and after confirmation, give a list of up to 5 potential conditions ranked by likelihood. Do not suggest treatments or medications. Always advise the user to consult a real doctor for a final diagnosis and treatment."
+                    )
+                }
+            ] + formatted_messages + [
+                {
+                    "role": "user",  # The current user message that the bot is responding to
+                    "content": user_message
+                }
+            ]
+        }
+
+        # Make the request to the AI API
+        url = "http://localhost:11434/api/chat"  # Adjust this if the API runs elsewhere
+
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url, json=payload) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    # Extract the AI's response from the API result
+                    return data["choices"][0]["message"]["content"]
+                else:
+                    return "Error: AI assistant is unavailable"
+
     async def chat_message(self, event):
         """
         Gestion de la réception d'un message par le WebSocket.
@@ -303,13 +390,37 @@ class ChatConsumer(AsyncWebsocketConsumer):
         
         # Vérifie si l'utilisateur est bien le destinataire du message avant de marquer comme vu
         if user.username != event['sender']:  # Le destinataire est différent de l'expéditeur
-            # Si le message vient d'un membre, vérifie si les médecins sont actifs
+            # Si le message vient d'un membre, vérifier si les médecins sont actifs
             if event['sender_type'] == 'membre' and any(doc['status'] == 'active' for doc in self.channel_layer.doctors_in_room[self.room_group_name]):
                 await self.mark_messages_as_seen_for_doctor()
 
-            # Si le message vient d'un médecin, vérifie si le membre est actif
+            # Si le message vient d'un médecin, vérifier si le membre est actif
             elif event['sender_type'] == 'medecin' and self.channel_layer.member_status[self.room_group_name]['status'] == 'active':
                 await self.mark_messages_as_seen_for_member()
+
+        # New logic for AI assistant messages
+        if event['sender_type'] == 'membre' and not self.channel_layer.doctors_in_room[self.room_group_name]:
+            # If no doctors are available, forward the message to the AI assistant
+            ai_response = await self.get_ai_response(event['message'])
+
+            # Save the AI response to the database (optional)
+            bot_user = await self.get_or_create_bot_user()  # Create or retrieve the AI bot user
+            bot_message = await self.save_message(bot_user, ai_response)
+
+            # Send AI response as a message to the WebSocket
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'chat_message',
+                    'message': bot_message.content,
+                    'message_id': bot_message.id,  # Ajoute l'ID du message
+                    'sender': bot_message.sender.username,
+                    'sender_type': 'bot',  # AI assistant is the sender
+                    'timestamp': bot_message.timestamp.isoformat(),
+                    'seen': False
+                }
+            )
+
 
 
 

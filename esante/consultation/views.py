@@ -7,6 +7,8 @@ from django.contrib.auth import get_user_model
 from django.http import JsonResponse
 from django.utils import timezone
 from datetime import timedelta
+from django.views.decorators.csrf import csrf_exempt
+import requests
 
 # Vue pour l'espace consultation du membre
 
@@ -63,3 +65,22 @@ def heartbeat_view(request):
     user.save()
     return JsonResponse({'status': 'ok'})
 
+@csrf_exempt
+def check_ai_availability(request):
+    try:
+        # Call the Ollama API to check the model's availability
+        response = requests.post(
+            "http://localhost:11434/api/show",
+            json={"model": "llama3.1:latest"}
+        )
+        data = response.json()
+
+        # If success is true, the model is available
+        if data.get("success", False):
+            return JsonResponse({"available": True})
+        else:
+            return JsonResponse({"available": False})
+
+    except Exception as e:
+        # Handle errors by returning AI as unavailable
+        return JsonResponse({"available": False})

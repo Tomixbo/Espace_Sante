@@ -7,11 +7,11 @@ class CustomUserAdmin(UserAdmin):
     model = CustomUser
 
     # Show these fields in the list view (when listing users)
-    list_display = ('username', 'email', 'is_online', 'last_seen', 'is_staff')
+    list_display = ('username', 'email', 'is_online', 'last_seen', 'is_staff', 'user_type')
 
     # Add the new fields to the user detail view (form view)
     fieldsets = UserAdmin.fieldsets + (
-        (None, {'fields': ('is_online', 'last_seen')}),
+        (None, {'fields': ('is_online', 'last_seen', 'user_type')}),
     )
 
     # Optionally make the fields read-only in the detail view
