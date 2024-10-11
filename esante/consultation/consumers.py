@@ -324,10 +324,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
         messages = list(self.chat_room.messages.all().order_by('-timestamp')[:40])  # Get up to 40 messages
         return messages[::-1]  # Reverse the order to preserve chronology
 
-    
     async def get_ai_response(self, user_message):
         """
-        Send the user message to the AI assistant (Ollama API) and return its response.
+        Send the user message to the AI assistant (Ollama API) and stream its response.
         Sends context and limits history to 40 messages.
         """
 
@@ -341,7 +340,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 "content": msg.content
             }
 
-        # Prepare the message payload according to the template provided for llama3.1:latest
         formatted_messages = [await get_message_info(msg) for msg in messages]
 
         payload = {
@@ -350,7 +348,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 {
                     "role": "system",
                     "content": (
-                        "You are an assistant in a healthcare consultation system. Your role is to provide preliminary assessments based on the user's symptoms and help them understand medical information. First, ask for their symptoms if not provided. Confirm the symptoms with the user, and after confirmation, give a list of up to 5 potential conditions ranked by likelihood. Do not suggest treatments or medications. Always advise the user to consult a real doctor for a final diagnosis and treatment."
+                        "You are an assistant in a healthcare consultation system. Keep your answer as short as possible (20 words). "
+                        "Your role is to provide preliminary assessments based on the user's symptoms and help them understand medical information. "
+                        "First, ask for their symptoms if not provided. Confirm the symptoms with the user, and after confirmation, give a list of up to 5 potential conditions ranked by likelihood. "
+                        "Do not suggest treatments or medications. Always advise the user to consult a real doctor for a final diagnosis and treatment."
                     )
                 }
             ] + formatted_messages + [
@@ -358,20 +359,49 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     "role": "user",  # The current user message that the bot is responding to
                     "content": user_message
                 }
-            ]
+            ],
+            "options": {
+                "top_p": 0.6,
+                "temperature": 0
+            },
+            "stream": True
         }
 
         # Make the request to the AI API
-        url = "http://localhost:11434/api/chat"  # Adjust this if the API runs elsewhere
+        url = "http://192.168.88.252:11434/api/chat"
 
         async with aiohttp.ClientSession() as session:
             async with session.post(url, json=payload) as response:
-                if response.status == 200:
-                    data = await response.json()
-                    # Extract the AI's response from the API result
-                    return data["choices"][0]["message"]["content"]
-                else:
-                    return "Error: AI assistant is unavailable"
+                decoder = json.JSONDecoder()
+                buffer = ""
+                full_message = ""  # Accumulate the full streamed message
+
+                async for chunk in response.content.iter_any():
+                    buffer += chunk.decode("utf-8")  # Accumulate chunks
+                    while buffer:
+                        try:
+                            # Try to decode the buffered content
+                            result, index = decoder.raw_decode(buffer)
+                            buffer = buffer[index:].lstrip()  # Trim the buffer
+
+                            # If we get a message, accumulate the content and stream it in real-time
+                            if 'message' in result:
+                                chunk_message = result['message']['content']
+                                full_message += chunk_message  # Accumulate full message
+
+                                # Send the chunk to the front-end for real-time streaming
+                                await self.send(text_data=json.dumps({
+                                    'type': 'chat_message_stream',
+                                    'message': chunk_message,
+                                }))
+
+                        except json.JSONDecodeError:
+                            # Break the loop if more chunks are needed
+                            break
+
+                # Return the full message after the stream is complete
+                return full_message
+
 
     async def chat_message(self, event):
         """
@@ -403,23 +433,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
             # If no doctors are available, forward the message to the AI assistant
             ai_response = await self.get_ai_response(event['message'])
 
-            # Save the AI response to the database (optional)
+            # Save the AI response to the database after the full stream ends (DO NOT broadcast it again)
             bot_user = await self.get_or_create_bot_user()  # Create or retrieve the AI bot user
             bot_message = await self.save_message(bot_user, ai_response)
 
-            # Send AI response as a message to the WebSocket
-            await self.channel_layer.group_send(
-                self.room_group_name,
-                {
-                    'type': 'chat_message',
-                    'message': bot_message.content,
-                    'message_id': bot_message.id,  # Ajoute l'ID du message
-                    'sender': bot_message.sender.username,
-                    'sender_type': 'bot',  # AI assistant is the sender
-                    'timestamp': bot_message.timestamp.isoformat(),
-                    'seen': False
-                }
-            )
+            # The message has already been streamed, so we only save it without broadcasting again
 
 
 

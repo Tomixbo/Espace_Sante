@@ -70,17 +70,16 @@ def check_ai_availability(request):
     try:
         # Call the Ollama API to check the model's availability
         response = requests.post(
-            "http://localhost:11434/api/show",
+            "http://192.168.88.252:11434/api/show",
             json={"model": "llama3.1:latest"}
         )
-        data = response.json()
 
-        # If success is true, the model is available
-        if data.get("success", False):
+        # If the status code is 200, return AI as available
+        if response.status_code == 200:
             return JsonResponse({"available": True})
         else:
             return JsonResponse({"available": False})
 
     except Exception as e:
-        # Handle errors by returning AI as unavailable
-        return JsonResponse({"available": False})
+        # Handle any errors by returning AI as unavailable
+        return JsonResponse({"available": False, "error": str(e)})
