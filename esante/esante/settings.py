@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     
     'accounts',
     'consultation',
+    'appel',
 
     'tailwind',
     'theme',

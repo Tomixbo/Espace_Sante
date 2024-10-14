@@ -1,0 +1,35 @@
+{% extends 'base3.html' %}
+
+{% load static %}
+
+{% block title %}Appel Vidéo{% endblock %}
+
+{% block center_buttons %}
+  <button class="bg-gray-200 p-2 h-10 w-10 flex items-center justify-center rounded-full hover:bg-gray-300 focus:outline-none">
+    <i class="fas fa-microphone fa-lg text-black"></i>
+  </button>
+
+  <button class="bg-gray-200 p-2 h-10 w-10 flex items-center justify-center rounded-full hover:bg-gray-300 focus:outline-none">
+    <i class="fas fa-video fa-lg text-black"></i>
+  </button>
+
+  <button class="bg-red-500 p-2 h-10 w-10 flex items-center justify-center rounded-full hover:bg-red-600 focus:outline-none">
+    <i class="fas fa-phone-slash fa-lg text-white"></i>
+  </button>
+{% endblock %}
+
+{% block content %}
+  <div class="video-container relative w-full" style="height: calc(100vh - 3rem);">
+    <video id="remoteVideo" autoplay class="absolute top-0 left-0 w-full h-full object-cover"></video>
+    <video id="localVideo" autoplay muted class="absolute bottom-4 right-4 w-48 h-48 object-cover rounded-lg shadow-lg"></video>
+  </div>
+
+  <script>
+    // Pass variables from Django into the JavaScript
+    window.member_id = "{{ member_id }}";
+    window.isInitiator = {{ is_initiator|yesno:'true,false' }};
+    console.log("Is Initiator:", window.isInitiator);
+  </script>
+
+  <script src="{% static 'js/webrtc.js' %}"></script>
+{% endblock %}

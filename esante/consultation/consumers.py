@@ -82,6 +82,26 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'messages': messages
         }))
 
+    async def call_initiated(self, event):
+        # Broadcast the call initiation to all users in the chatroom
+        print("Call_initiated")
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            {
+                "type": "incoming_call",
+                "doctor": event["doctor"],   # The doctor who initiated the call
+                "room_id": event["room_id"], # The room ID or member ID
+            }
+        )
+
+    async def incoming_call(self, event):
+        # Send the call event to WebSocket clients
+        await self.send(text_data=json.dumps({
+            "type": "incoming_call",
+            "doctor": event["doctor"],  # The doctor who initiated the call
+            "room_id": event["room_id"]  # The room or member ID
+        }))
+
     async def disconnect(self, close_code):
         user = self.scope["user"]
         await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
@@ -190,6 +210,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     'seen': message.seen
                 }
             )
+        
+        elif text_data_json.get('type') == 'call_initiated':
+            await self.call_initiated({
+                "doctor": text_data_json.get('doctor'),
+                "room_id": text_data_json.get('room_id')
+            })
 
 
 
@@ -595,3 +621,48 @@ class UserStatusConsumer(AsyncWebsocketConsumer):
             'user_id': event['user_id'],
             'is_online': event['is_online'],
         }))
+
+
+class CallConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        self.room_name = self.scope['url_route']['kwargs']['room_name']
+        self.room_group_name = f'call_{self.room_name}'
+
+        # Join room group
+        await self.channel_layer.group_add(self.room_group_name, self.channel_name)
+        await self.accept()
+
+        # Notify other participants that a new user has joined
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            {
+                'type': 'new_user_joined',
+                'message': {'type': 'new-user-joined'},
+                'sender_channel_name': self.channel_name,
+            }
+        )
+
+    async def disconnect(self, close_code):
+        # Leave room group
+        await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
+
+    async def receive(self, text_data):
+        data = json.loads(text_data)
+        # Broadcast the message to other peers in the room
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            {
+                'type': 'send_sdp',
+                'message': data,
+                'sender_channel_name': self.channel_name,
+            }
+        )
+
+    async def send_sdp(self, event):
+        if self.channel_name != event['sender_channel_name']:
+            await self.send(text_data=json.dumps(event['message']))
+
+    async def new_user_joined(self, event):
+        if self.channel_name != event['sender_channel_name']:
+            # Send message to WebSocket
+            await self.send(text_data=json.dumps(event['message']))

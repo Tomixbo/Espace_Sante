@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import consultation_view, chat_with_member_view, liste_consultations, heartbeat_view, check_ai_availability, video_call_view
+from .views import consultation_view, chat_with_member_view, liste_consultations, heartbeat_view, check_ai_availability
 
 urlpatterns = [
     path('consultation/', consultation_view, name='consultation'),  # Espace consultation pour le membre
@@ -7,6 +7,5 @@ urlpatterns = [
     path('liste_consultations/', liste_consultations, name='liste_consultations'),  # Espace consultation pour le membre
     path('heartbeat/', heartbeat_view, name='heartbeat'),
     path('check-ai-availability/', check_ai_availability, name='check_ai_availability'),
-    path('video-call/<int:member_id>/', video_call_view, name='video_call'),  # New video call route
 
 ]

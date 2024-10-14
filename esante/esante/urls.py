@@ -23,5 +23,6 @@ urlpatterns = [
     path('', include('accounts.urls')),
     path('logout/', LogoutView.as_view(), name='logout'),
     path('', include('consultation.urls')),
+    path('', include('appel.urls')),
 ]
 

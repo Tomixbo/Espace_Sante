@@ -84,8 +84,3 @@ def check_ai_availability(request):
         # Handle any errors by returning AI as unavailable
         return JsonResponse({"available": False, "error": str(e)})
 
-@login_required
-@medecin_required
-def video_call_view(request, member_id):
-    # Placeholder for video call page
-    return render(request, 'consultation/video_call.html')
