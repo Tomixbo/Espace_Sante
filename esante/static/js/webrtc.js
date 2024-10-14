@@ -4,6 +4,8 @@ let localStream;
 let peerConnection;
 let pendingCandidates = [];
 let pendingSignalingMessages = [];
+let micEnabled = true; // Keeps track of the microphone state
+let videoEnabled = true; // Video state
 let peerConnectionReady = false; // Indique si peerConnection est initialisé
 const servers = {
   iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
@@ -48,6 +50,48 @@ websocket.onclose = () => {
   console.log("WebSocket fermé");
 };
 
+// Toggle microphone on/off
+function toggleMicrophone() {
+  if (localStream) {
+    localStream.getAudioTracks().forEach((track) => {
+      track.enabled = !track.enabled;
+    });
+
+    // Update the micEnabled state
+    micEnabled = !micEnabled;
+
+    // Change the icon based on the mic state
+    const micIcon = document.getElementById("micIcon");
+    if (micEnabled) {
+      micIcon.classList.remove("fa-microphone-slash");
+      micIcon.classList.add("fa-microphone");
+    } else {
+      micIcon.classList.remove("fa-microphone");
+      micIcon.classList.add("fa-microphone-slash");
+    }
+  }
+}
+
+// Toggle video on/off
+function toggleVideo() {
+  if (localStream) {
+    localStream.getVideoTracks().forEach((track) => {
+      track.enabled = !track.enabled;
+    });
+
+    videoEnabled = !videoEnabled;
+
+    const videoIcon = document.getElementById("videoIcon");
+    if (videoEnabled) {
+      videoIcon.classList.remove("fa-video-slash");
+      videoIcon.classList.add("fa-video");
+    } else {
+      videoIcon.classList.remove("fa-video");
+      videoIcon.classList.add("fa-video-slash");
+    }
+  }
+}
+
 // Envoyer des messages via WebSocket
 function sendMessage(message) {
   if (websocket.readyState === WebSocket.OPEN) {
@@ -59,6 +103,26 @@ function sendMessage(message) {
       message
     );
   }
+}
+
+// Hang up the call and notify the other participant
+function hangUpCall() {
+  if (peerConnection) {
+    peerConnection.close(); // Close the peer connection
+    peerConnection = null;
+  }
+
+  // Stop all local media tracks
+  if (localStream) {
+    localStream.getTracks().forEach((track) => track.stop());
+  }
+
+  // Send the hangup signal before closing WebSocket
+  sendMessage({ type: "hangup" });
+
+  // Notify the user that the call has ended
+  console.log("Call has ended. Redirecting to call-ended page...");
+  window.location.href = "/call-ended/";
 }
 
 async function startCall() {
@@ -124,9 +188,9 @@ async function createOffer() {
   sendMessage({ type: "offer", sdp: peerConnection.localDescription });
 }
 
-// Gérer les messages entrants du WebSocket
+// Handle WebSocket signaling messages
 function handleSignalingMessage(parsedMessage) {
-  console.log("Traitement du message de signalisation :", parsedMessage);
+  console.log("Handling signaling message:", parsedMessage);
 
   if (parsedMessage.type === "offer") {
     handleOffer(parsedMessage.sdp);
@@ -134,12 +198,17 @@ function handleSignalingMessage(parsedMessage) {
     handleAnswer(parsedMessage.sdp);
   } else if (parsedMessage.type === "new-ice-candidate") {
     handleICECandidateMessage(parsedMessage.candidate);
+  } else if (parsedMessage.type === "hangup") {
+    // If the other user hangs up, end the call and redirect
+    console.log("Received hangup signal, triggering hangUpCall()");
+    hangUpCall(); // End the call on receiving a hangup signal
   } else if (parsedMessage.type === "new-user-joined") {
     if (window.isInitiator) {
-      // Maintenant qu'un nouvel utilisateur a rejoint, créer et envoyer l'offre
-      console.log("Un nouvel utilisateur a rejoint. Envoi de l'offre...");
-      createOffer();
+      createOffer(); // Send an offer when a new user joins
     }
+  } else if (parsedMessage.type === "user_disconnected") {
+    console.log("The other user was disconnected due to timeout.");
+    hangUpCall(); // End the call on timeout
   }
 }
 
@@ -206,3 +275,17 @@ async function handleICECandidateMessage(candidate) {
     console.error("Erreur lors de l'ajout du candidat ICE reçu", e);
   }
 }
+
+// Start the heartbeat mechanism
+function startHeartbeat() {
+  setInterval(() => {
+    sendMessage({ type: "heartbeat" });
+    console.log("Sending heartbeat to server...");
+  }, 5000); // Send a heartbeat every 5 seconds
+}
+
+// Send heartbeat as soon as the connection opens
+websocket.onopen = () => {
+  console.log("WebSocket connected");
+  startHeartbeat(); // Start the heartbeat mechanism
+};

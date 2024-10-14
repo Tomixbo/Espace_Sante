@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+{% load static tailwind_tags %}
+<html lang="en">
+  <head>
+    <title>{% block title %}Espace{% endblock %}</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    {% tailwind_css %}
+  </head>
+  <body class="bg-gray-100 text-gray-900 h-screen flex flex-col"> <!-- Flexbox on body -->
+    
+    <!-- Navbar -->
+    <nav class="bg-white shadow-md h-12">
+      <div class="container mx-auto flex items-center h-full ">
+        <!-- Espace Santé link on the left -->
+        <div class="flex items-center h-full space-x-12">
+          <a href="{% url 'home' %}" class="text-2xl font-bold">Espace Santé</a>
+          {% block navbar_buttons %}{% endblock %}
+        </div>
+
+        <!-- Right-aligned user information and logout -->
+        <div class="ml-auto flex items-center space-x-4">
+
+
+          <a href="{% url 'login' %}" class="hover:text-blue-500 ">Se connecter</a>
+          <a href="{% url 'signup' %}" class="hover:text-blue-500 border-l pl-4">S'inscrire</a>
+
+
+        </div>
+      </div>
+    </nav>
+
+    <!-- Page Content -->
+    <div class="flex-grow"> <!-- Page content fills remaining height -->
+      {% block content %}{% endblock %}
+    </div>
+
+  </body>
+</html>

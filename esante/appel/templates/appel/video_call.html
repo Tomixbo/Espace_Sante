@@ -5,18 +5,20 @@
 {% block title %}Appel Vidéo{% endblock %}
 
 {% block center_buttons %}
-  <button class="bg-gray-200 p-2 h-10 w-10 flex items-center justify-center rounded-full hover:bg-gray-300 focus:outline-none">
-    <i class="fas fa-microphone fa-lg text-black"></i>
+  <button id="micButton" class="bg-gray-200 p-2 h-10 w-10 flex items-center justify-center rounded-full hover:bg-gray-300 focus:outline-none" onclick="toggleMicrophone()">
+    <i id="micIcon" class="fas fa-microphone fa-lg text-black"></i>
   </button>
 
-  <button class="bg-gray-200 p-2 h-10 w-10 flex items-center justify-center rounded-full hover:bg-gray-300 focus:outline-none">
-    <i class="fas fa-video fa-lg text-black"></i>
+  <button id="videoButton" class="bg-gray-200 p-2 h-10 w-10 flex items-center justify-center rounded-full hover:bg-gray-300 focus:outline-none" onclick="toggleVideo()">
+    <i id="videoIcon" class="fas fa-video fa-lg text-black"></i>
   </button>
 
-  <button class="bg-red-500 p-2 h-10 w-10 flex items-center justify-center rounded-full hover:bg-red-600 focus:outline-none">
-    <i class="fas fa-phone-slash fa-lg text-white"></i>
+  <button id="hangupButton" class="bg-red-500 p-2 h-10 w-10 flex items-center justify-center rounded-full hover:bg-red-600 focus:outline-none" onclick="hangUpCall()">
+    <i id="hangupIcon" class="fas fa-phone-slash fa-lg text-white"></i>
   </button>
 {% endblock %}
+
+
 
 {% block content %}
   <div class="video-container relative w-full" style="height: calc(100vh - 3rem);">

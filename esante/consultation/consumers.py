@@ -7,6 +7,7 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 from channels.layers import get_channel_layer
 import aiohttp 
+import asyncio
 
 User = get_user_model()
 
@@ -624,6 +625,9 @@ class UserStatusConsumer(AsyncWebsocketConsumer):
 
 
 class CallConsumer(AsyncWebsocketConsumer):
+    HEARTBEAT_INTERVAL = 5  # Seconds between heartbeat pings
+    TIMEOUT = 10  # Time in seconds before considering a user disconnected
+
     async def connect(self):
         self.room_name = self.scope['url_route']['kwargs']['room_name']
         self.room_group_name = f'call_{self.room_name}'
@@ -631,6 +635,10 @@ class CallConsumer(AsyncWebsocketConsumer):
         # Join room group
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         await self.accept()
+
+        # Start the heartbeat check
+        self.last_heartbeat = asyncio.get_event_loop().time()
+        self.heartbeat_task = asyncio.create_task(self.check_heartbeat())
 
         # Notify other participants that a new user has joined
         await self.channel_layer.group_send(
@@ -643,26 +651,74 @@ class CallConsumer(AsyncWebsocketConsumer):
         )
 
     async def disconnect(self, close_code):
+        # Cancel the heartbeat check task
+        if hasattr(self, 'heartbeat_task'):
+            self.heartbeat_task.cancel()
+
         # Leave room group
         await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
 
-    async def receive(self, text_data):
-        data = json.loads(text_data)
-        # Broadcast the message to other peers in the room
+        # Notify others that a user has disconnected
         await self.channel_layer.group_send(
             self.room_group_name,
             {
-                'type': 'send_sdp',
-                'message': data,
+                'type': 'user_disconnected',
                 'sender_channel_name': self.channel_name,
             }
         )
+
+    async def receive(self, text_data):
+        data = json.loads(text_data)
+        message_type = data.get('type')
+
+        # Reset the heartbeat timer when any message is received
+        self.last_heartbeat = asyncio.get_event_loop().time()
+
+        # Handle SDP messages and ICE candidates
+        if message_type in ['offer', 'answer', 'new-ice-candidate']:
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'send_sdp',
+                    'message': data,
+                    'sender_channel_name': self.channel_name,
+                }
+            )
+
+        # Handle hang-up event
+        elif message_type == 'hangup':
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'call_hangup',
+                    'sender_channel_name': self.channel_name,
+                }
+            )
+
+        # Handle heartbeat event
+        elif message_type == 'heartbeat':
+            self.last_heartbeat = asyncio.get_event_loop().time()
+
+    async def check_heartbeat(self):
+        while True:
+            await asyncio.sleep(self.HEARTBEAT_INTERVAL)
+            if asyncio.get_event_loop().time() - self.last_heartbeat > self.TIMEOUT:
+                # User is considered disconnected due to timeout
+                await self.disconnect(close_code=3000)
+                break
 
     async def send_sdp(self, event):
         if self.channel_name != event['sender_channel_name']:
             await self.send(text_data=json.dumps(event['message']))
 
+    async def call_hangup(self, event):
+        if self.channel_name != event['sender_channel_name']:
+            await self.send(text_data=json.dumps({'type': 'hangup'}))
+
     async def new_user_joined(self, event):
         if self.channel_name != event['sender_channel_name']:
-            # Send message to WebSocket
             await self.send(text_data=json.dumps(event['message']))
+
+    async def user_disconnected(self, event):
+        if self.channel_name != event['sender_channel_name']:
+            await self.send(text_data=json.dumps({'type': 'user_disconnected'}))

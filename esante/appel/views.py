@@ -9,3 +9,7 @@ def video_call_view(request, member_id):
         'member_id': member_id,
         'is_initiator': is_initiator
     })
+
+@login_required
+def call_ended_view(request):
+    return render(request, 'appel/call_ended.html')
