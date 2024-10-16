@@ -9,6 +9,7 @@
           {% if request.path == '/liste_consultations/' %}bg-blue-600 text-white pointer-events-none{% else %}text-blue-600 hover:bg-blue-500 hover:text-white transition{% endif %}">
   Consultations
 </a>
+
 {% endblock %}
 
 {% block navbar_right %}
@@ -20,26 +21,6 @@
 {% endblock %}
 
 {% block content %}
-<div class="flex flex-col items-center justify-center h-full">
-  <script>
-    // Inject current doctor info and member ID into the JS context
-    window.currentUser = "{{ request.user.username }}";  
-    window.memberId = "{{ membre.id }}";  // ID of the member being consulted
-    window.userType = "{{ request.user.user_type }}";  // ID of the member being consulted
-  </script>
-
-
-  <!-- Chat window placeholder -->
-  <div id="react-app-chat" class="h-full mt-4" style="width: 900px; margin: 25px auto; box-sizing: border-box;"></div>
-</div>
-
-<!-- Include the Vite-built React app -->
-<link rel="stylesheet" href="{% static 'react/assets/index-01.css' %}">
-<script type="module" src="{% static 'react/assets/index-01.js' %}"></script>
-
-
-
-
-
+{% include 'consultation/chat_template.html'%}
 
 {% endblock %}

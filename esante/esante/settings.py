@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'accounts',
     'consultation',
     'appel',
+    'dossier_medical',
 
     'tailwind',
     'theme',

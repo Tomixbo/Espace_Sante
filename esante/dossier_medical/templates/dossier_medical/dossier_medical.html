@@ -4,7 +4,7 @@
 {% block title %}Espace Consultation{% endblock %}
 
 {% block navbar_buttons %}
-<!-- Add active class conditionally based on the current URL -->
+<!-- Navigation buttons -->
 <a href="{% url 'consultation' %}"
    class="h-full px-4 flex items-center border-r border-l 
           {% if request.path == '/consultation/' %}
@@ -21,13 +21,13 @@
           {% else %}
               text-blue-600 hover:bg-blue-500 hover:text-white transition 
           {% endif %}">
-  Dossier médical
+  Dossier médical 
 </a>
 {% endblock %}
 
-
 {% block content %}
+<div class="container mx-auto my-8 p-4">
 
-{% include 'consultation/chat_template.html'%}
-
+    {% include 'dossier_medical/dossier_medical_content.html'%}
+</div>
 {% endblock %}

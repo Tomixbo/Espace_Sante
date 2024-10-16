@@ -24,5 +24,6 @@ urlpatterns = [
     path('logout/', LogoutView.as_view(), name='logout'),
     path('', include('consultation.urls')),
     path('', include('appel.urls')),
+    path('', include('dossier_medical.urls')),
 ]
 
