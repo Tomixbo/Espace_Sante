@@ -6,6 +6,8 @@ Web platform in the health field. Read the file [a relative link](Project_descri
 python -m venv .venv
 .venv\Scripts\activate
 .venv\Scripts\python -m pip install -r requirements.txt
+cd esante\theme\static_src
+npm install
 ```
 
 # Deployment in development
