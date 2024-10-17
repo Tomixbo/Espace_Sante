@@ -84,3 +84,6 @@ def check_ai_availability(request):
         # Handle any errors by returning AI as unavailable
         return JsonResponse({"available": False, "error": str(e)})
 
+
+def ia_assistant(request):
+    return render(request, 'consultation/ia_assistant.html')
