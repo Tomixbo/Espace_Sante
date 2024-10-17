@@ -1,6 +1,8 @@
 django
 django-tailwind
 django-widget-tweaks
+requests
 channels
 daphne
 whitenoise
+aiohttp
