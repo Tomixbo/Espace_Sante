@@ -1,6 +1,6 @@
 django
 django-tailwind
-widget_tweaks
+django-widget-tweaks
 channels
 daphne
 whitenoise
