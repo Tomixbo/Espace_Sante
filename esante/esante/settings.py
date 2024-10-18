@@ -53,6 +53,8 @@ INSTALLED_APPS = [
     'tailwind',
     'theme',
 
+    'rest_framework',
+    'rest_framework.authtoken',
     
 ]
 
@@ -172,3 +174,8 @@ AUTHENTICATION_BACKENDS = (
 SESSION_COOKIE_SECURE = False  # Mettre à True en production avec HTTPS
 SESSION_COOKIE_SAMESITE = 'Lax'  # 'Strict', 'Lax', ou 'None' selon vos besoins
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+}

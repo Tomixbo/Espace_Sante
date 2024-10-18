@@ -8,6 +8,7 @@ from django.shortcuts import get_object_or_404
 from accounts.models import CustomUser
 from django.middleware.csrf import get_token
 import json
+import locale
 
 @csrf_exempt
 @login_required
@@ -49,6 +50,10 @@ def create_consultation(request):
 
 @login_required
 def consultation_schedule(request):
+    # Set locale to French
+    locale.setlocale(locale.LC_TIME, "fr_FR.UTF-8")  # For Windows, use "French" instead of "fr_FR.UTF-8"
+
+
     try:
         week_offset = int(request.GET.get('week', 0))
     except ValueError:
