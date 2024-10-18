@@ -1,0 +1,88 @@
+{% extends "base2.html" %}
+{% load custom_tags %}
+
+{% block content %}
+<div class="container mx-auto my-8 p-4">
+    <div class="flex justify-between mb-4">
+        <!-- Bouton semaine précédente -->
+        <a href="?week={{ week_offset|add:-1 }}" class="text-blue-500 hover:text-blue-700">
+            &larr; Semaine précédente
+        </a>
+        <h1 class="text-xl font-bold">Planning des consultations ({{ week_days.0 }} - {{ week_days|last }})</h1>
+        <!-- Bouton semaine suivante -->
+        <a href="?week={{ week_offset|add:1 }}" class="text-blue-500 hover:text-blue-700">
+            Semaine suivante &rarr;
+        </a>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="min-w-full bg-white border">
+            <thead>
+                <tr>
+                    <th class="border px-4 py-2 text-center"></th> <!-- Cellule vide pour les heures -->
+                    {% for day in week_days %}
+                        <th class="border px-4 py-2 text-center">{{ day }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for hour in hours %}
+                    <tr>
+                        <td class="border px-4 py-2 text-center font-bold">{{ hour }}</td>
+                        
+                        {% for day in week_days %}
+                            {% with consultation=consultations_by_day|get_item:day|get_item:hour %}
+                                {% if consultation %}
+                                    <td class="border px-4 py-2 text-center bg-green-500 text-white hover:bg-green-600 cursor-pointer" data-consultation-id="{{ consultation.id }}">
+                                        {{ consultation.doctor }} - {{ consultation.patient }}
+                                    </td>
+                                {% else %}
+                                    <td class="border px-4 py-2 text-center"></td>
+                                {% endif %}
+                            {% endwith %}
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Modal pour les détails de la consultation -->
+    <div id="consultation-modal" class="fixed z-10 inset-0 hidden overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen px-4 text-center">
+            <div class="bg-white rounded-lg p-6 shadow-lg max-w-lg w-full">
+                <h2 class="text-2xl font-bold mb-4">Détails de la consultation</h2>
+                <p><strong>Médecin :</strong> <span id="modal-doctor"></span></p>
+                <p><strong>Patient :</strong> <span id="modal-patient"></span></p>
+                <p><strong>Lieu :</strong> <span id="modal-facility"></span></p>
+                <p><strong>Heure de début :</strong> <span id="modal-start-time"></span></p>
+                <p><strong>Heure de fin :</strong> <span id="modal-end-time"></span></p>
+                <button id="close-modal" class="mt-4 bg-red-500 text-white px-4 py-2 rounded">Fermer</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    const consultations = {{ consultations_json|safe }};
+    
+    document.querySelectorAll('[data-consultation-id]').forEach(td => {
+        td.addEventListener('click', function() {
+            const consultation = consultations.find(c => c.id == this.dataset.consultationId);
+            
+            if (consultation) {
+                document.getElementById('modal-doctor').textContent = consultation.doctor;
+                document.getElementById('modal-patient').textContent = consultation.patient;
+                document.getElementById('modal-facility').textContent = consultation.facility;
+                document.getElementById('modal-start-time').textContent = consultation.consultation_start_time;
+                document.getElementById('modal-end-time').textContent = consultation.consultation_end_time;
+                
+                document.getElementById('consultation-modal').classList.remove('hidden');
+            }
+        });
+    });
+
+    document.getElementById('close-modal').addEventListener('click', function() {
+        document.getElementById('consultation-modal').classList.add('hidden');
+    });
+</script>
+{% endblock %}

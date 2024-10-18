@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'consultation',
     'appel',
     'dossier_medical',
+    'planning_consultation',
 
     'tailwind',
     'theme',
