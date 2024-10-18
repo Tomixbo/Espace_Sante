@@ -23,6 +23,15 @@
           {% endif %}">
   Dossier médical 
 </a>
+<a href="{% url 'planning'%}"
+        class="h-full px-4 flex items-center border-r border-l 
+                {% if request.path == '/dossier-medical/' %}
+                    bg-blue-600 text-white pointer-events-none 
+                {% else %}
+                    text-blue-600 hover:bg-blue-500 hover:text-white transition 
+                {% endif %}">
+        Planning consultation
+        </a>
 {% endblock %}
 
 {% block content %}
