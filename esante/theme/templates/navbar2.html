@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notre plateforme pour l'accès équitable aux soins de santé à Madagascar</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        /* Barre latérale masquée par défaut sur mobile, mais visible sur desktop */
+        #sidebar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 16rem;
+            /* Largeur de la sidebar */
+            height: 100vh;
+            background-color: white;
+            border-right: 1px solid #e5e7eb;
+            transform: translateY(0);
+            /* Position par défaut */
+            transition: transform 0.3s ease;
+            z-index: 10;
+            margin-left: 25px;
+        }
+
+        /* Contenu principal */
+        #main-content {
+            transition: margin-left 0.3s ease;
+            margin-left: 16rem;
+            /* Par défaut sur ordinateur, le contenu laisse la place pour la sidebar */
+        }
+
+        /* Sidebar masqué (pour tous les écrans) */
+        .sidebar-hidden #sidebar {
+            transform: translateX(-100%);
+            /* Cache la sidebar en la déplaçant vers le haut */
+        }
+
+        /* Ajustement de la marge pour le contenu principal */
+        .sidebar-hidden #main-content {
+            margin-left: 0;
+            /* Le contenu prend toute la largeur lorsque le sidebar est masqué */
+        }
+
+        /* Bouton pour afficher/cacher le sidebar */
+        #toggle-sidebar {
+            position: absolute;
+            /* Positionnement absolu */
+            top: 0;
+            /* Aligné en haut */
+            left: 0;
+            /* Aligné à gauche */
+            width: 25px;
+            /* Largeur de 25px par défaut */
+            height: 100%;
+            /* Hauteur à 100% */
+            background-color: rgba(79, 70, 229, 0.9);
+            /* Couleur de fond du bouton */
+            color: white;
+            /* Couleur du texte */
+            border-radius: 0;
+            /* Pas de coins arrondis */
+            z-index: 20;
+            /* Au-dessus de la sidebar */
+            transition: background-color 0.3s ease, transform 0.3s ease;
+            /* Transition pour les effets */
+        }
+
+        /* Ajustements pour mobile */
+        @media (max-width: 767px) {
+            #toggle-sidebar {
+                width: 100%;
+                /* Largeur à 100% sur mobile */
+                height: 30px;
+                /* Hauteur à 30px sur mobile */
+            }
+
+            #sidebar {
+                margin-left: 0;
+                margin-top: 30px;
+                width: 100%;
+                /* Largeur de la sidebar */
+                height: 100%;
+            }
+
+            .sidebar-hidden #sidebar {
+                transform: translateY(-100%);
+                /* Cache la sidebar en la déplaçant vers le haut */
+            }
+
+        }
+    </style>
+</head>
+
+<body class="bg-gradient-to-br from-purple-50 via-white to-pink-50 min-h-screen">
+
+    <div class="flex flex-col md:flex-row">
+        <!-- Bouton pour le collapse de la barre latérale -->
+        <button id="toggle-sidebar" class="p-1">
+            <i class="fas fa-bars"></i>
+        </button>
+        
+        <!-- Barre latérale -->
+        <aside id="sidebar" class="w-64 bg-white border-r border-gray-200 p-5 h-screen flex flex-col justify-between">
+            <div>
+                <a href="{% url 'home' %}">
+                    <h2 class="text-2xl font-bold text-purple-800 text-center">Stand Base</h2>
+                </a>
+                <div class="text-gray-700 mb-5 pb-2 border-b-2 text-center">Bonjour, {{ user.username|title }}</div>
+                <nav>
+                    <ul>
+                        <li class="mb-4">
+                            <a href="{% url 'home' %}" class="nav-link flex items-center p-2 text-gray-700 hover:bg-purple-100 rounded-md">
+                                <i class="fas fa-tachometer-alt mr-3"></i>
+                                <span>Tableau de bord</span>
+                            </a>
+                        </li>
+                        {% if user.user_type == 'membre'%}
+                        <li class="mb-4">
+                            <a href="{% url 'consultation' %}" class="nav-link flex items-center p-2 text-gray-700 hover:bg-purple-100 rounded-md">
+                                <i class="fas fa-users mr-3"></i>
+                                <span>Consulter</span>
+                            </a>
+                        </li>
+                        {% else %}
+                        <li class="mb-4">
+                            <a href="{% url 'liste_consultations' %}" class="nav-link flex items-center p-2 text-gray-700 hover:bg-purple-100 rounded-md">
+                                <i class="fas fa-users mr-3"></i>
+                                <span>Consultations</span>
+                            </a>
+                        </li>
+                        {% endif %}
+                        <li class="mb-4">
+                            <a href="{% url 'get_dossier_medical' user.id %}" class="nav-link flex items-center p-2 text-gray-700 hover:bg-purple-100 rounded-md">
+                                <i class="fas fa-cog mr-3"></i>
+                                <span>Dossier médical</span>
+                            </a>
+                        </li>
+                        <li class="mb-4">
+                            <a href="{% url 'planning' %}" class="nav-link flex items-center p-2 text-gray-700 hover:bg-purple-100 rounded-md">
+                                <i class="fas fa-calendar-alt mr-3"></i>
+                                <span>Planning</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+            
+            
+                <form method="POST" action="{% url 'logout' %}" class="flex items-center">
+                    {% csrf_token %}
+                    <button type="submit" class="nav-link flex items-center p-2 text-gray-700 hover:bg-purple-100 rounded-md w-full text-left">
+                        <i class="fas fa-sign-out-alt mr-3"></i>
+                        <span>Déconnexion</span>
+                    </button>
+                </form>
+            
+        </aside>
+        
+
+        <!-- Contenu principal -->
+        <div id="main-content" class="flex-grow h-screen p-4 ">
+            {% block content %}
+            {% endblock %}
+        </div>
+    </div>
+
+    <!-- Script pour le bouton de collapse -->
+    <script>
+        const toggleButton = document.getElementById('toggle-sidebar');
+        const body = document.body;
+        const navLinks = document.querySelectorAll('.nav-link');
+
+        // Vérifier l'état du stockage local au chargement de la page
+        if (localStorage.getItem('sidebar-hidden') === 'true') {
+            body.classList.add('sidebar-hidden');
+        }
+
+        toggleButton.addEventListener('click', () => {
+            body.classList.toggle('sidebar-hidden');
+            // Sauvegarder l'état dans le stockage local
+            localStorage.setItem('sidebar-hidden', body.classList.contains('sidebar-hidden'));
+        });
+
+        // Ajouter un événement de clic à chaque lien de navigation
+        navLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                // Vérifie si l'écran est en mode mobile
+                if (window.innerWidth <= 767) {
+                    body.classList.add('sidebar-hidden'); // Ferme la sidebar uniquement sur mobile
+                    // Sauvegarder l'état dans le stockage local
+                    localStorage.setItem('sidebar-hidden', true);
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

@@ -114,4 +114,7 @@ def consultation_schedule(request):
         'user': request.user,
         'csrf_token': get_token(request),
     }
+    # Si la requête est AJAX, renvoyer uniquement le fragment de la page
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return render(request, 'planning_consultation/planning_content.html', context)
     return render(request, 'planning_consultation/planning.html', context)

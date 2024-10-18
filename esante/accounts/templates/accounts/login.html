@@ -1,39 +1,28 @@
-{% extends 'base.html' %}
+{% extends 'navbar.html' %}
 {% load widget_tweaks %}
 
 {% block content %}
-<div class="min-h-screen bg-gray-100 flex flex-col justify-center sm:py-12">
-  <div class="relative py-3 sm:max-w-xl sm:mx-auto">
-    <div class="absolute inset-0 bg-gradient-to-r from-blue-300 to-blue-500 shadow-lg transform -skew-y-6 sm:skew-y-0 sm:-rotate-6 sm:rounded-3xl"></div>
-    <div class="relative px-4 py-10 bg-white shadow-lg sm:rounded-3xl sm:p-20">
-      <h1 class="text-2xl font-semibold">Se connecter</h1>
-      <form method="POST" class="mt-8 space-y-6">
+<main class="container mx-auto px-4 py-12 flex justify-center items-center">
+  <div class="glassmorphism rounded-3xl p-8 md:p-12 max-w-md w-full shadow-lg">
+      <h2 class="text-3xl font-bold mb-6 text-center text-purple-800">Connexion</h2>
+      <form method="POST">
         {% csrf_token %}
-        {{ form.non_field_errors }}
-
-        <!-- Apply w-full to form fields using the add_class filter -->
-        <div class="relative">
-          <label for="username" class="block text-sm font-medium text-gray-700">Nom d'utilisateur</label>
-          {{ form.username|add_class:"w-full border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 p-2" }}
-        </div>
-        <div class="relative">
-          <label for="password" class="block text-sm font-medium text-gray-700">Mot de passe</label>
-          {{ form.password|add_class:"w-full border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 p-2" }}
-        </div>
-        <div class="relative">
-          <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded-lg shadow-lg hover:bg-blue-600">
-            Connexion
-          </button>
-        </div>
+        {{form.non_field_errors}}
+          <div class="mb-4">
+              <label for="username" class="block text-gray-700">Nom d'utilisateur</label>
+             {{form.username|add_class:"input-field mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none"}}
+          </div>
+          <div class="mb-4">
+              <label for="password" class="block text-gray-700">Mot de passe</label>
+              {{form.password|add_class:"input-field mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none"}}
+          </div>
+          <button type="submit" class="button w-full bg-purple-600 text-white py-2 rounded-md">Se connecter</button>
       </form>
-
-      <!-- Links below the button -->
       <div class="mt-4 text-center">
-        <a href="{% url 'home' %}" class="text-blue-600 hover:text-blue-800">Retour à l'accueil</a>
-        <span class="mx-2">|</span>
-        <a href="{% url 'signup' %}" class="text-blue-600 hover:text-blue-800">S'inscrire</a>
+          <a href="#" class="text-purple-500 hover:underline">Mot de passe oublié ?</a>
       </div>
-    </div>
   </div>
-</div>
+</main>
+
 {% endblock %}
+  

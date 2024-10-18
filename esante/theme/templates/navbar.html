@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notre plateforme pour l'accès équitable aux soins de santé à Madagascar</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        .glassmorphism {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        /* Styles pour la timeline */
+        .timeline {
+            position: relative;
+            max-width: 800px;
+            margin: auto;
+        }
+
+        .timeline-item {
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -30px;
+            top: 0;
+            height: 100%;
+            border-left: 2px solid #d1d5db;
+        }
+
+        .timeline-item-content {
+            margin-left: 50px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .timeline-item-content h3 {
+            margin-bottom: 10px;
+            color: #4b5563;
+        }
+
+        .timeline-item-content p {
+            color: #6b7280;
+        }
+    </style>
+</head>
+
+<body class="bg-gradient-to-br from-purple-50 via-white to-pink-50 min-h-screen">
+    <div class="absolute inset-0 bg-gradient-to-br from-purple-200 via-white to-pink-200 opacity-50 z-0"></div>
+
+    <header class="container mx-auto px-4 py-6 relative z-10">
+        <nav class="flex justify-between items-center">
+            <a href="{% url 'home'%}">
+                <div class="flex items-center">
+                    <span class="text-2xl font-bold"><span class="text-red-500">/</span>Stand Base</span>
+                </div>
+            </a>
+            
+            <div class="hidden md:flex space-x-6">
+                <a href="#accueil" class="text-gray-600 hover:text-gray-900">Accueil</a>
+                <a href="#apropos" class="text-gray-600 hover:text-gray-900">À propos</a>
+                <a href="#services" class="text-gray-600 hover:text-gray-900">Services</a>
+            </div>
+            <div class="flex items-center space-x-4">
+                <a href="{% url 'login'%}" class="text-gray-600 hover:text-gray-900 font-medium">Connexion</a>
+                <a href="{% url 'signup' %}" class="bg-gray-900 text-white px-4 py-2 rounded-md font-medium hover:bg-gray-800">Inscription</a>
+            </div>
+        </nav>
+    </header>
+
+   
+    {% block content %} {% endblock %}
+  
+    <footer class="bg-gray-900 text-white py-6">
+        <div class="container mx-auto text-center">
+            <p>&copy; 2024 Stand Base. Tous droits réservés.</p>
+            <div class="mt-4">
+                <a href="#" class="text-gray-400 hover:text-white mx-2">Politique de confidentialité</a>
+                <a href="#" class="text-gray-400 hover:text-white mx-2">Conditions d'utilisation</a>
+            </div>
+        </div>
+    </footer>
+</body>
+
+</html>

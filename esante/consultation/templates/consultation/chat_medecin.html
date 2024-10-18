@@ -1,32 +1,5 @@
-{% extends 'base2.html' %}
-{% load static %}
+{% extends 'navbar2.html' %}
 
-{% block title %}Espace Consultation{% endblock %}
-
-{% block navbar_buttons %}
-<a href="{% url 'liste_consultations' %}"
-   class="h-full px-4 flex items-center border-r border-l 
-          {% if request.path == '/liste_consultations/' %}bg-blue-600 text-white pointer-events-none{% else %}text-blue-600 hover:bg-blue-500 hover:text-white transition{% endif %}">
-  Consultations
-</a>
-<a href="{% url 'planning'%}"
-   class="h-full px-4 flex items-center border-r border-l 
-          {% if request.path == '/dossier-medical/' %}
-              bg-blue-600 text-white pointer-events-none 
-          {% else %}
-              text-blue-600 hover:bg-blue-500 hover:text-white transition 
-          {% endif %}">
-  Planning consultation
-</a>
-{% endblock %}
-
-{% block navbar_right %}
-<span class="text-gray-700">Bonjour, {{ user.username|title }}</span>
-<form method="POST" action="{% url 'logout' %}" class="inline border-l pl-4">
-  {% csrf_token %}
-  <button type="submit" class="text-red-600 hover:text-red-800">Déconnecter</button>
-</form>
-{% endblock %}
 
 {% block content %}
 {% include 'consultation/chat_template.html'%}
