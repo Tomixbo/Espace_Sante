@@ -27,3 +27,33 @@ https ::
 daphne -e ssl:192.168.88.119:8000:privateKey=C:/Users/tomix/Documents/Hackathon_ODD/Espace_Sante/esante/server.key:certKey=C:/Users/tomix/Documents/Hackathon_ODD/Espace_Sante/esante/server.crt esante.asgi:application
 
 ```
+
+# API endpoints
+Header:
+```
+Authorization : Token your_token
+```
+To get new token : 
+```
+python manage.py drf_create_token <your_username>
+```
+Methods:
+```
+GET http://127.0.0.1:8000/api/check-availability/?date=2024-10-25&hour=14
+# date : format YYYY-MM-DD
+# hour : integer between 0 to 23
+```
+
+```
+POST http://127.0.0.1:8000/api/create-consultation/
+```
+```
+{
+    "doctor": 3,
+    "patient": 2,
+    "facility": "Online",
+    "consultation_start_time": "2024-10-20T09:00:00",
+    "consultation_end_time": "2024-10-20T10:00:00"
+}
+# Note : Replace 2 and 5 by user id.
+```
