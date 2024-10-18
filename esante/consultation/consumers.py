@@ -500,7 +500,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def get_chat_room(self, membre_id):
-        return ChatRoom.objects.get(membre_id=membre_id)
+        chat_room, created = ChatRoom.objects.get_or_create(membre_id=membre_id)
+        return chat_room
+
 
     @database_sync_to_async
     def get_membre_name(self):

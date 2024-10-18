@@ -39,6 +39,7 @@
 <script>
   window.currentUser = "{{ request.user.username }}";  // Injecte le nom d'utilisateur actuel
   window.memberId = "{{ membre.id }}";  // Injecte l'ID du membre (sélectionné ou connecté)
+  window.userType = "{{request.user.user_type}}"; //
 
   const showPanelBtn = document.getElementById('show-panel-btn');
   const secondPanel = document.getElementById('second-panel');
