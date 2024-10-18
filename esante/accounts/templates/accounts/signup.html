@@ -1,90 +1,71 @@
-{% extends 'base.html' %}
+{% extends 'navbar.html' %}
 {% load widget_tweaks %}
 
 {% block content %}
-
-<div class="min-h-screen bg-gray-100 flex flex-col justify-center sm:py-12">
-  <div class="relative py-3 sm:max-w-xl sm:mx-auto">
-    <div class="absolute inset-0 bg-gradient-to-r from-green-300 to-green-500 shadow-lg transform -skew-y-6 sm:skew-y-0 sm:-rotate-6 sm:rounded-3xl"></div>
-    <div class="relative px-4 py-10 bg-white shadow-lg sm:rounded-3xl sm:p-20">
-      <h1 class="text-2xl font-semibold">S'inscrire</h1>
-      <form method="POST" class="mt-8 space-y-6">
-        {% csrf_token %}
-
-        <!-- Afficher les erreurs non spécifiques à un champ -->
-        {% if form.non_field_errors %}
-          <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+<main class="container mx-auto px-4 py-12 flex justify-center items-center">
+    <div class="glassmorphism rounded-3xl p-8 md:p-12 max-w-md w-full shadow-lg">
+        <h2 class="text-3xl font-bold mb-6 text-center text-purple-800">Créer un compte</h2>
+        <form method="POST">
+            {% csrf_token %}
             {{ form.non_field_errors }}
-          </div>
-        {% endif %}
-
-        <!-- Input fields styled with Tailwind to match the width of the button -->
-        <div class="relative">
-          <label for="username" class="block text-sm font-medium text-gray-700">Nom d'utilisateur</label>
-          {{ form.username|add_class:"w-full border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 p-2" }}
-          {% if form.username.errors %}
-            <div class="text-red-500 text-sm">
-              {{ form.username.errors }}
+            
+            <div class="mb-4">
+                <label for="username" class="block text-gray-700">Nom d'utilisateur</label>
+                {{ form.username|add_class:"input-field mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none" }}
+                {% if form.username.errors %}
+                    <div class="text-red-500 text-sm mt-1">
+                        {{ form.username.errors }}
+                    </div>
+                {% endif %}
             </div>
-          {% endif %}
-        </div>
-
-        <div class="relative">
-          <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
-          {{ form.email|add_class:"w-full border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 p-2" }}
-          {% if form.email.errors %}
-            <div class="text-red-500 text-sm">
-              {{ form.email.errors }}
+            
+            <div class="mb-4">
+                <label for="email" class="block text-gray-700">Email</label>
+                {{ form.email|add_class:"input-field mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none" }}
+                {% if form.email.errors %}
+                    <div class="text-red-500 text-sm mt-1">
+                        {{ form.email.errors }}
+                    </div>
+                {% endif %}
             </div>
-          {% endif %}
-        </div>
-
-        <!-- Type de compte : Médecin ou Membre -->
-        <div class="relative">
-          <label for="user_type" class="block text-sm font-medium text-gray-700">Type de compte</label>
-          {{ form.user_type|add_class:"w-full border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 p-2" }}
-          {% if form.user_type.errors %}
-            <div class="text-red-500 text-sm">
-              {{ form.user_type.errors }}
+            
+            <div class="mb-4">
+                <label for="user_type" class="block text-gray-700">Type de compte</label>
+                {{ form.user_type|add_class:"input-field mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none" }}
+                {% if form.user_type.errors %}
+                    <div class="text-red-500 text-sm mt-1">
+                        {{ form.user_type.errors }}
+                    </div>
+                {% endif %}
             </div>
-          {% endif %}
-        </div>
-
-        <div class="relative">
-          <label for="password1" class="block text-sm font-medium text-gray-700">Mot de passe</label>
-          {{ form.password1|add_class:"w-full border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 p-2" }}
-          {% if form.password1.errors %}
-            <div class="text-red-500 text-sm">
-              {{ form.password1.errors }}
+            
+            <div class="mb-4">
+                <label for="password1" class="block text-gray-700">Mot de passe</label>
+                {{ form.password1|add_class:"input-field mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none" }}
+                {% if form.password1.errors %}
+                    <div class="text-red-500 text-sm mt-1">
+                        {{ form.password1.errors }}
+                    </div>
+                {% endif %}
             </div>
-          {% endif %}
-        </div>
-
-        <div class="relative">
-          <label for="password2" class="block text-sm font-medium text-gray-700">Confirmer mot de passe</label>
-          {{ form.password2|add_class:"w-full border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 p-2" }}
-          {% if form.password2.errors %}
-            <div class="text-red-500 text-sm">
-              {{ form.password2.errors }}
+            
+            <div class="mb-4">
+                <label for="password2" class="block text-gray-700">Confirmer le mot de passe</label>
+                {{ form.password2|add_class:"input-field mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none" }}
+                {% if form.password2.errors %}
+                    <div class="text-red-500 text-sm mt-1">
+                        {{ form.password2.errors }}
+                    </div>
+                {% endif %}
             </div>
-          {% endif %}
+            
+            <button type="submit" class="button w-full bg-purple-600 text-white py-2 rounded-md">S'inscrire</button>
+        </form>
+        
+        <div class="mt-4 text-center">
+            <a href="#" class="text-purple-500 hover:underline">Vous avez déjà un compte ? Se connecter</a>
         </div>
-
-        <div class="relative">
-          <button type="submit" class="w-full bg-green-500 text-white py-2 rounded-lg shadow-lg hover:bg-green-600">
-            Inscription
-          </button>
-        </div>
-      </form>
-
-      <!-- Links below the button -->
-      <div class="mt-4 text-center">
-        <a href="{% url 'home' %}" class="text-blue-600 hover:text-blue-800">Retour à l'accueil</a>
-        <span class="mx-2">|</span>
-        <a href="{% url 'login' %}" class="text-blue-600 hover:text-blue-800">Se connecter</a>
-      </div>
     </div>
-  </div>
-</div>
+</main>
 
 {% endblock %}

@@ -1,33 +1,17 @@
-{% extends 'base2.html' %}
+{% extends 'navbar2.html' %}
 {% load static %}
 
-{% block title %}Espace Consultation{% endblock %}
 
-{% block navbar_buttons %}
-<!-- Add active class conditionally based on the current URL -->
-<a href="{% url 'consultation' %}"
-   class="h-full px-4 flex items-center border-r border-l 
-          {% if request.path == '/consultation/' %}
-              bg-blue-600 text-white pointer-events-none 
-          {% else %}
-              text-blue-600 hover:bg-blue-500 hover:text-white transition 
-          {% endif %}">
-  Consulter
-</a>
-<a href="{% url 'get_dossier_medical' user.id %}"
-   class="h-full px-4 flex items-center border-r border-l 
-          {% if request.path == '/dossier-medical/' %}
-              bg-blue-600 text-white pointer-events-none 
-          {% else %}
-              text-blue-600 hover:bg-blue-500 hover:text-white transition 
-          {% endif %}">
-  Dossier médical
-</a>
-{% endblock %}
+
+
+
 
 
 {% block content %}
 
 {% include 'consultation/chat_template.html'%}
+<!-- Include the Vite-built React app -->
+<link rel="stylesheet" href="{% static 'react/assets/index-01.css' %}">
+<script type="module" src="{% static 'react/assets/index-01.js' %}"></script>
 
 {% endblock %}

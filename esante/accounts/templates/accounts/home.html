@@ -1,20 +1,97 @@
-{% extends 'base_nav.html' %} 
-{% block title %}Accueil{% endblock %} 
-{% block navbar_buttons %}
-
-{% endblock %} 
-
-{% block navbar_right %}
-
-<a href="{% url 'login' %}" class="text-blue-600 hover:text-blue-800 "
-  >Se connecter</a
->
-<a href="{% url 'signup' %}" class="text-blue-600 hover:text-blue-800 border-l pl-4"
-  >S'inscrire</a
->
-{% endblock %}
+{% extends 'navbar.html' %}
 {% block content %}
-<div class="flex flex-col items-center justify-center h-full">
-  <h1 class="text-4xl font-bold">Bienvenue sur Espace Santé</h1>
-</div>
+    <main class="container mx-auto px-4 py-12 text-center relative z-10">
+        <div class="glassmorphism rounded-3xl p-8 md:p-12 max-w-4xl mx-auto">
+            <p class="text-gray-600 mb-4">Surmonter les obstacles à l'accès équitable aux soins de santé à Madagascar</p>
+            <h1 class="text-5xl md:text-6xl font-bold mb-8 leading-tight">
+                Combiner <span class="bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 bg-clip-text text-transparent">technologie et solidarité</span> pour un accès aux soins pour tous
+            </h1>
+            <p class="text-lg text-gray-600 mb-8">
+                Notre plateforme permet de soutenir les patients défavorisés avec des consultations en ligne et des pré-diagnostics IA.
+            </p>
+            <div class="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4 mb-8">
+                <a href="#" class="bg-gray-900 text-white px-8 py-3 rounded-md font-medium hover:bg-gray-800 w-full sm:w-auto">En savoir plus</a>
+                <a href="#" class="border border-gray-300 text-gray-700 px-8 py-3 rounded-md font-medium hover:bg-gray-50 flex items-center justify-center w-full sm:w-auto">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+                    </svg>
+                    Voir la démo
+                </a>
+            </div>
+            <p class="text-gray-500 text-sm">Essai gratuit de 60 jours • Aucune carte de crédit requise</p>
+        </div>
+    </main>
+
+    <div class="pb-12 bg-white">
+        <div class="relative">
+            <div class="absolute inset-0 h-2/3 bg-gray-50"></div>
+            <div class="relative mx-auto">
+                <div class="lg:max-w-6xl lg:mx-auto">
+                    <img class="transform scale-110" src="https://cdn.rareblocks.xyz/collection/clarity/images/hero/2/illustration.png" alt="Illustration de santé" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <section id="services" class="container mx-auto px-4 py-12 relative z-10">
+        <h2 class="text-4xl md:text-5xl font-bold mb-8 text-center">
+            Nos Services <span class="bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 bg-clip-text text-transparent">innovants</span>
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="glassmorphism p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out">
+                <div class="flex items-center mb-4">
+                    <i class="fas fa-user-md fa-2x text-purple-500 mr-3"></i>
+                    <h3 class="text-2xl font-semibold">Consultations en ligne</h3>
+                </div>
+                <p class="text-gray-600">Accédez à des médecins qualifiés via chat ou visioconférence pour un suivi personnalisé.</p>
+            </div>
+            <div class="glassmorphism p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out">
+                <div class="flex items-center mb-4">
+                    <i class="fas fa-robot fa-2x text-purple-500 mr-3"></i>
+                    <h3 class="text-2xl font-semibold">Pré-diagnostics par IA</h3>
+                </div>
+                <p class="text-gray-600">Utilisez notre IA pour des pré-diagnostics rapides et pour gérer vos rendez-vous facilement.</p>
+            </div>
+            <div class="glassmorphism p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out">
+                <div class="flex items-center mb-4">
+                    <i class="fas fa-hospital fa-2x text-purple-500 mr-3"></i>
+                    <h3 class="text-2xl font-semibold">Support aux zones rurales</h3>
+                </div>
+                <p class="text-gray-600">Équiper les centres de santé des zones rurales avec des outils connectés pour faciliter les consultations à distance.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section de la chronologie -->
+    <section class="bg-white py-12">
+        <h2 class="text-4xl md:text-5xl font-bold mb-8 text-center">
+            Notre Histoire
+        </h2>
+        <div class="timeline">
+            <div class="timeline-item">
+                <div class="timeline-item-content">
+                    <h3>2020</h3>
+                    <p>Lancement de notre initiative pour améliorer l'accès aux soins de santé à Madagascar.</p>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-item-content">
+                    <h3>2021</h3>
+                    <p>Développement de la plateforme de consultation en ligne et première phase de tests.</p>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-item-content">
+                    <h3>2022</h3>
+                    <p>Partenariat avec des ONG pour atteindre les communautés rurales.</p>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-item-content">
+                    <h3>2023</h3>
+                    <p>Extension de nos services à travers Madagascar avec des formations pour le personnel de santé.</p>
+                </div>
+            </div>
+        </div>
+    </section>
 {% endblock %}
