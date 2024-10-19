@@ -104,20 +104,26 @@
             }
 
         }
+
+        /* Styles adaptatifs pour la taille du texte */
+        .adaptive-text {
+            font-size: clamp(0.750rem, 0.5vw + 0.25rem, 1.25rem); /* Exemples de valeurs */
+        }
+
     </style>
 </head>
 
 <body class="bg-gradient-to-br from-purple-50 via-white to-pink-50 min-h-screen">
 
-    <div class="flex flex-col md:flex-row">
+    <div class="flex flex-col md:flex-row w-full">
         <!-- Bouton pour le collapse de la barre latérale -->
         <button id="toggle-sidebar" class="p-1">
             <i class="fas fa-bars"></i>
         </button>
         
         <!-- Barre latérale -->
-        <aside id="sidebar" class="w-64 bg-white border-r border-gray-200 p-5 h-screen flex flex-col justify-between">
-            <div>
+        <aside id="sidebar" class="w-64 bg-white border-r border-gray-200 p-5 h-screen flex flex-col sm:justify-between">
+            <div class="flex flex-col">
                 <a href="{% url 'home' %}">
                     <h2 class="text-2xl font-bold text-purple-800 text-center">Stand Base</h2>
                 </a>
@@ -178,8 +184,9 @@
                     </ul>
                 </nav>
             </div>
-            
-            
+
+            <!-- Formulaire de déconnexion, placé dans le même conteneur pour les petits écrans -->
+            <div class="flex flex-col sm:mt-0">
                 <form method="POST" action="{% url 'logout' %}" class="flex items-center">
                     {% csrf_token %}
                     <button type="submit" class="nav-link flex items-center p-2 text-gray-700 hover:bg-purple-100 rounded-md w-full text-left">
@@ -187,7 +194,7 @@
                         <span>Déconnexion</span>
                     </button>
                 </form>
-            
+            </div>
         </aside>
         
 

@@ -1,24 +1,12 @@
 {% load static %}
-<style>
-  #react-app-chat {
-    height: 90vh; /* Prend toute la hauteur de l'écran */
-    width: 90%;   /* Prend toute la largeur de l'écran */
-    transition: width 0.5s ease; /* Animation pour le changement de largeur */
-  }
 
-  #second-panel {
-    height: 90vh; /* Prend toute la hauteur de l'écran */
-    width: 400px;  /* Largeur fixe pour le deuxième panneau */
-    transition: all 0.5s ease; /* Animation pour les changements de styles */
-  }
-</style>
 
-<div class="flex flex-col md:flex-row items-center justify-center h-full p-6 space-y-5 md:space-y-0 md:space-x-5">
+<div class="flex flex-col sm:flex-col lg:flex-row items-center justify-center h-full p-6 space-y-5 sm:space-y-5 lg:space-y-0 space-x-0 sm:space-x-0 lg:space-x-5">
   <!-- React App Container for the other React component -->  
-  <div id="react-app-chat" class="h-full rounded-lg overflow-hidden shadow-md bg-white"></div>
+  <div id="react-app-chat" class="flex h-full w-[95%] rounded-lg overflow-hidden shadow-md bg-white"></div>
 
   <!-- 2nd panel (hidden initially) -->
-  <div id="second-panel" class="hidden h-full bg-gray-200 rounded-lg overflow-hidden shadow-md flex flex-col transition-all duration-500">
+  <div id="second-panel" class="hidden h-full w-[95%] bg-gray-200 rounded-lg overflow-hidden shadow-md  flex-col transition-all duration-500">
     <div class="bg-gray-500 p-4 flex justify-between items-center">
       <select id="dropdown" class="bg-white text-gray-700 p-2 rounded-lg w-1/3">
         <option value="" selected disabled>---</option>
@@ -34,16 +22,18 @@
       {% include 'consultation/ia_assistant.html' %}
     </div>
     <!-- Div du bas qui prend le reste de la hauteur -->
-    <div class="flex-grow m-4" id="content-area">
+    <div class="flex-grow m-4 overflow-auto" id="content-area">
       <!-- Le contenu pour les autres options sera inséré ici via AJAX -->
     </div>
   </div>
 
-  <!-- Button to show 2nd panel -->
-  <button id="show-panel-btn" class="absolute top-4 right-4 h-12 w-12 bg-blue-500 text-white text-3xl rounded-full shadow-lg hover:bg-blue-600 transition duration-200">
-    +
-  </button>
+
+  
 </div>
+  <!-- Button to show 2nd panel -->
+  <button id="show-panel-btn" class="absolute top-10 right-2 lg:right-4 h-10 w-10 bg-purple-800 text-white text-3xl rounded-full shadow-lg opacity-50 hover:opacity-100 transition duration-200 flex items-center justify-center">
+    <i class="fas fa-plus text-sm"></i>
+  </button>
 
 <script>
   window.currentUser = "{{ request.user.username }}";  // Injecte le nom d'utilisateur actuel
@@ -60,21 +50,23 @@
   // Show second panel and hide "+" button
   showPanelBtn.addEventListener('click', function() {
     secondPanel.classList.remove('hidden');
+    secondPanel.classList.add('flex');
     showPanelBtn.classList.add('hidden');
 
     // Réduire la largeur de la première div
     const reactAppChat = document.getElementById('react-app-chat');
-    reactAppChat.style.width = 'calc(100% - 400px)'; // Ajuste selon la largeur de ton deuxième panneau
+    // reactAppChat.style.width = 'calc(100% - 400px)'; // Ajuste selon la largeur de ton deuxième panneau
   });
 
   // Close second panel and show "+" button
   closePanelBtn.addEventListener('click', function() {
+    secondPanel.classList.remove('flex');
     secondPanel.classList.add('hidden');
     showPanelBtn.classList.remove('hidden');
 
     // Restaurer la largeur de la première div
     const reactAppChat = document.getElementById('react-app-chat');
-    reactAppChat.style.width = '90%'; // Rétablit la largeur initiale
+   
   });
 
   // Dropdown selection logic
