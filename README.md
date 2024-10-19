@@ -11,13 +11,13 @@ npm install
 ```
 
 # Deployment in development
-bash1 : 
+bash 01 : 
 ```
 .venv\Scripts\activate
 cd esante
 python manage.py tailwind start
 ```
-bash2 :
+bash 02 :
 ```
 .venv\Scripts\activate
 cd esante
