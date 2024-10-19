@@ -87,6 +87,7 @@
             if (consultation) {
                 // Format the date and time
                 const consultationDate = new Date(consultation.consultation_start_time).toLocaleDateString('fr-FR', {
+                    timeZone: 'Indian/Antananarivo',  // Spécifie le fuseau horaire de Madagascar
                     weekday: 'long',
                     year: 'numeric',
                     month: 'long',
@@ -94,6 +95,7 @@
                 });
 
                 const startTime = new Date(consultation.consultation_start_time).toLocaleTimeString('fr-FR', {
+                    timeZone: 'Indian/Antananarivo',  // Spécifie le fuseau horaire de Madagascar
                     hour: '2-digit',
                     minute: '2-digit'
                 }).replace(':00', 'h');
