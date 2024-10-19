@@ -48,10 +48,13 @@ INSTALLED_APPS = [
     'consultation',
     'appel',
     'dossier_medical',
+    'planning_consultation',
 
     'tailwind',
     'theme',
 
+    'rest_framework',
+    'rest_framework.authtoken',
     
 ]
 
@@ -133,12 +136,10 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
-LANGUAGE_CODE = "en-us"
-
-TIME_ZONE = "UTC"
-
+LANGUAGE_CODE = 'fr'
+TIME_ZONE = 'Europe/Paris'  # Choisissez le fuseau horaire approprié pour votre projet
 USE_I18N = True
-
+USE_L10N = True
 USE_TZ = True
 
 
@@ -170,4 +171,10 @@ AUTHENTICATION_BACKENDS = (
 
 SESSION_COOKIE_SECURE = False  # Mettre à True en production avec HTTPS
 SESSION_COOKIE_SAMESITE = 'Lax'  # 'Strict', 'Lax', ou 'None' selon vos besoins
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+}
 

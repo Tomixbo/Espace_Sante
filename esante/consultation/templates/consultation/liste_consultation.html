@@ -1,30 +1,13 @@
-{% extends 'base2.html' %}
+{% extends 'navbar2.html' %}
 
-{% block title %}Espace Médecin{% endblock %}
 
-{% block navbar_buttons %}
-<!-- Add active class conditionally based on the current URL -->
-<a href="{% url 'liste_consultations' %}"
-   class="h-full px-4 flex items-center border-r border-l 
-          {% if request.path == '/liste_consultations/' %}
-              bg-blue-600 text-white pointer-events-none 
-          {% else %}
-              text-blue-600 hover:bg-blue-500 hover:text-white transition 
-          {% endif %}">
-  Consultations
-</a>
-
-{% endblock %}
 
 
 
 {% block content %}
 <div class="flex flex-col items-center justify-start max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-20">
 
-  <!-- Titre principal centré en haut de la page -->
-  <div class="w-full flex justify-center">
-    <h1 class="text-4xl font-bold text-gray-900 text-center">Espace Médecin</h1>
-  </div>
+
 
   <!-- Conteneur du tableau -->
   <div class="w-full bg-white shadow-lg rounded-lg overflow-hidden flex flex-col items-center">

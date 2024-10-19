@@ -3,33 +3,58 @@
 {% block content %}
 
   <!-- Contenu principal -->
-  <main class="flex-1 p-6">
-      <h1 class="text-3xl font-bold mb-6">Tableau de bord</h1>
+  <main class="flex flex-1 flex-col p-6 min-h-screen">
+      <h1 class="text-3xl font-bold mb-6 text-center">Prenez le contrôle de votre santé dès maintenant</h1>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          <div class="bg-white p-4 rounded-lg shadow-md">
-              <h2 class="font-semibold text-lg mb-2">Utilisateurs Actifs</h2>
-              <p class="text-2xl font-bold text-purple-600">1,250</p>
+      <!-- Section de tutoriel -->
+      <div class="bg-white p-6 rounded-lg shadow-md flex-grow mb-8 flex flex-col">
+          <h2 class="text-2xl font-bold mb-4">Commencer avec la Plateforme</h2>
+          <p class="text-gray-600 mb-4">
+              Cette plateforme vous permet de gérer votre dossier médical en ligne, de consulter vos antécédents médicaux, de communiquer avec les professionnels de la santé, et bien plus encore.
+              Suivez ces étapes pour une prise en main rapide.
+          </p>
+          
+          <!-- Étapes du tutoriel -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              <div class="bg-gray-100 p-4 rounded-lg shadow-md flex items-start">
+                  <span class="text-4xl text-purple-600 font-bold mr-4">1</span>
+                  <div>
+                      <h3 class="font-semibold text-lg mb-2">Accéder à votre Dossier Médical</h3>
+                      <p class="text-gray-600">
+                          Visualisez vos informations médicales et suivez l’historique de vos consultations en un clic. Allez dans la section "Mon Dossier Médical".
+                      </p>
+                  </div>
+              </div>
+              
+              <div class="bg-gray-100 p-4 rounded-lg shadow-md flex items-start">
+                  <span class="text-4xl text-purple-600 font-bold mr-4">2</span>
+                  <div>
+                      <h3 class="font-semibold text-lg mb-2">Programmer une Consultation</h3>
+                      <p class="text-gray-600">
+                          Réservez une consultation en ligne avec un de nos médecins ou utilisez notre assistant IA pour poser des questions.
+                      </p>
+                  </div>
+              </div>
+              
+              <div class="bg-gray-100 p-4 rounded-lg shadow-md flex items-start">
+                  <span class="text-4xl text-purple-600 font-bold mr-4">3</span>
+                  <div>
+                      <h3 class="font-semibold text-lg mb-2">Gérer Vos Rendez-vous</h3>
+                      <p class="text-gray-600">
+                          Accédez facilement à votre calendrier de consultations et visualisez vos rendez-vous à venir avec les médecins.
+                      </p>
+                  </div>
+              </div>
           </div>
-          <div class="bg-white p-4 rounded-lg shadow-md">
-              <h2 class="font-semibold text-lg mb-2">Nouveaux Inscrits</h2>
-              <p class="text-2xl font-bold text-purple-600">150</p>
-          </div>
-          <div class="bg-white p-4 rounded-lg shadow-md">
-              <h2 class="font-semibold text-lg mb-2">Événements à Venir</h2>
-              <p class="text-2xl font-bold text-purple-600">5</p>
-          </div>
-      </div>
-
-      <h2 class="text-2xl font-bold mb-4">Rapport d'Activité</h2>
-      <div class="bg-white p-4 rounded-lg shadow-md">
-          <p class="text-gray-600 mb-4">Graphique d'activité des utilisateurs au cours du dernier mois :</p>
-          <!-- Ici vous pouvez ajouter un graphique avec une bibliothèque comme Chart.js -->
-          <div class="h-64 bg-gray-200 rounded-md flex items-center justify-center">
-              <span class="text-gray-500">Graphique ici</span>
+          
+          <!-- Vidéo tutoriel ou image illustrative -->
+          <div class="flex-grow flex flex-col mt-8">
+              <h2 class="text-2xl font-bold mb-4">Regardez notre Vidéo de Présentation</h2>
+              <div class="flex-grow bg-gray-200 rounded-md shadow-md overflow-hidden">
+                    <img class="transform scale-110" src="https://cdn.rareblocks.xyz/collection/clarity/images/hero/2/illustration.png" alt="Illustration de santé" />
+                </div>
           </div>
       </div>
   </main>
-
 
 {% endblock %}

@@ -34,6 +34,7 @@
             transition: transform 0.3s ease;
             z-index: 10;
             margin-left: 25px;
+            position: fixed;
         }
 
         /* Contenu principal */
@@ -77,6 +78,7 @@
             /* Au-dessus de la sidebar */
             transition: background-color 0.3s ease, transform 0.3s ease;
             /* Transition pour les effets */
+            position: fixed;
         }
 
         /* Ajustements pour mobile */
@@ -112,58 +114,85 @@
         <button id="toggle-sidebar" class="p-1">
             <i class="fas fa-bars"></i>
         </button>
-
+        
         <!-- Barre latérale -->
-        <aside id="sidebar" class="w-64 bg-white border-r border-gray-200 p-4 h-screen aside">
-            <a href="{% url 'home' %}">
-                <h2 class="text-2xl font-bold text-purple-800 mb-6">Stand Base</h2>
-            </a>
-            <nav>
-                <ul>
-                    <li class="mb-4">
-                        <a href="{% url 'home' %}"
-                            class="nav-link flex items-center p-2 text-gray-700 hover:bg-purple-100 rounded-md">
-                            <i class="fas fa-tachometer-alt mr-3"></i>
-                            <span>Tableau de bord</span>
-                        </a>
-                    </li>
-                    <li class="mb-4">
-                        <a href="{% url 'consultation' %}"
-                            class="nav-link flex items-center p-2 text-gray-700 hover:bg-purple-100 rounded-md">
-                            <i class="fas fa-users mr-3"></i>
-                            <span>Consulter</span>
-                        </a>
-                    </li>
-                    <li class="mb-4">
-                        <a href="{% url 'get_dossier_medical' user.id %}"
-                            class="nav-link flex items-center p-2 text-gray-700 hover:bg-purple-100 rounded-md">
-                            <i class="fas fa-calendar-alt mr-3"></i>
-                            <span>Dossier médical</span>
-                        </a>
-                    </li>
-                    <li class="mb-4">
-                        <a href="#" class="nav-link flex items-center p-2 text-gray-700 hover:bg-purple-100 rounded-md">
-                            <i class="fas fa-cog mr-3"></i>
-                            <span>Planning</span>
-                        </a>
-                    </li>
-                    <li>
-                        <form method="POST" action="{% url 'logout' %}" class="flex items-center">
-                            {% csrf_token %}
-                            <button type="submit"
-                                class="nav-link flex items-center p-2 text-gray-700 hover:bg-purple-100 rounded-md w-full text-left">
-                                <i class="fas fa-sign-out-alt mr-3"></i>
-                                <span>Déconnexion</span>
-                            </button>
-                        </form>
-                    </li>
-                </ul>
-            </nav>
-
+        <aside id="sidebar" class="w-64 bg-white border-r border-gray-200 p-5 h-screen flex flex-col justify-between">
+            <div>
+                <a href="{% url 'home' %}">
+                    <h2 class="text-2xl font-bold text-purple-800 text-center">Stand Base</h2>
+                </a>
+                <div class="text-gray-700 mb-5 pb-2 border-b-2 text-center">Bonjour, {{ user.username|title }}</div>
+                <nav>
+                    <ul>
+                        {% if user.user_type == 'membre'%}
+                        <li class="mb-4">
+                            <a href="{% url 'home' %}" class="nav-link flex items-center p-2 text-gray-700 hover:bg-purple-100 rounded-md">
+                                <i class="fa-solid fa-house-user mr-3"></i>
+                                <span>Accueil</span>
+                            </a>
+                        </li>
+                        {% else %}
+                        <li class="mb-4">
+                            <a href="{% url 'home' %}" class="nav-link flex items-center p-2 text-gray-700 hover:bg-purple-100 rounded-md">
+                                <i class="fas fa-tachometer-alt mr-3"></i>
+                                <span>Tableau de bord</span>
+                            </a>
+                        </li>
+                        {% endif %}
+                        {% if user.user_type == 'membre'%}
+                        <li class="mb-4">
+                            <a href="{% url 'consultation' %}" class="nav-link flex items-center p-2 text-gray-700 hover:bg-purple-100 rounded-md">
+                                <i class="fa-solid fa-comment-medical mr-3"></i>
+                                <span>Consulter</span>
+                            </a>
+                        </li>
+                        {% else %}
+                        <li class="mb-4">
+                            <a href="{% url 'liste_consultations' %}" class="nav-link flex items-center p-2 text-gray-700 hover:bg-purple-100 rounded-md">
+                                <i class="fa-solid fa-comment-medical mr-3"></i>
+                                <span>Consultations</span>
+                            </a>
+                        </li>
+                        {% endif %}
+                        {% if user.user_type == 'membre'%}
+                        <li class="mb-4">
+                            <a href="{% url 'get_dossier_medical' user.id %}" class="nav-link flex items-center p-2 text-gray-700 hover:bg-purple-100 rounded-md">
+                                <i class="fa-regular fa-folder-open mr-3"></i>
+                                <span>Dossier médical</span>
+                            </a>
+                        </li>
+                        {% else %}
+                        <li class="mb-4">
+                            <a href="{% url 'list_members' %}" class="nav-link flex items-center p-2 text-gray-700 hover:bg-purple-100 rounded-md">
+                                <i class="fa-regular fa-folder-open mr-3"></i>
+                                <span>Dossiers médicaux</span>
+                            </a>
+                        </li>
+                        {% endif %}
+                        <li class="mb-4">
+                            <a href="{% url 'planning' %}" class="nav-link flex items-center p-2 text-gray-700 hover:bg-purple-100 rounded-md">
+                                <i class="fas fa-calendar-alt mr-3"></i>
+                                <span>Planning</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+            
+            
+                <form method="POST" action="{% url 'logout' %}" class="flex items-center">
+                    {% csrf_token %}
+                    <button type="submit" class="nav-link flex items-center p-2 text-gray-700 hover:bg-purple-100 rounded-md w-full text-left">
+                        <i class="fas fa-sign-out-alt mr-3"></i>
+                        <span>Déconnexion</span>
+                    </button>
+                </form>
+            
         </aside>
+        
 
         <!-- Contenu principal -->
-        <div id="main-content" class="flex-grow p-4 mt-3">
+        <div id="main-content" class="flex-grow h-screen p-4 ">
             {% block content %}
             {% endblock %}
         </div>

@@ -25,5 +25,6 @@ urlpatterns = [
     path('', include('consultation.urls')),
     path('', include('appel.urls')),
     path('', include('dossier_medical.urls')),
+    path('', include('planning_consultation.urls')),
 ]
 

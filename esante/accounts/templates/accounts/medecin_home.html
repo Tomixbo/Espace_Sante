@@ -1,25 +1,34 @@
-{% extends 'base2.html' %}
-
-{% block title %}Espace Médecin{% endblock %}
-
-{% block navbar_buttons %}
-<!-- Add active class conditionally based on the current URL -->
-<a href="{% url 'liste_consultations' %}"
-   class="h-full px-4 flex items-center border-r border-l 
-          {% if request.path == '/liste_consultations/' %}
-              bg-blue-600 text-white pointer-events-none 
-          {% else %}
-              text-blue-600 hover:bg-blue-500 hover:text-white transition 
-          {% endif %}">
-  Consultations
-</a>
-
-{% endblock %}
+{% extends 'navbar2.html' %}
 
 
 
 {% block content %}
-<div class="flex flex-col items-center justify-center h-full">
-  <h1 class="text-4xl font-bold">Espace Médecin</h1>
-</div>
+ <!-- Contenu principal -->
+ <main class="flex-1 p-6">
+  <h1 class="text-3xl font-bold mb-6">Tableau de bord</h1>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+      <div class="bg-white p-4 rounded-lg shadow-md">
+          <h2 class="font-semibold text-lg mb-2">Utilisateurs Actifs</h2>
+          <p class="text-2xl font-bold text-purple-600">1,250</p>
+      </div>
+      <div class="bg-white p-4 rounded-lg shadow-md">
+          <h2 class="font-semibold text-lg mb-2">Nouveaux Inscrits</h2>
+          <p class="text-2xl font-bold text-purple-600">150</p>
+      </div>
+      <div class="bg-white p-4 rounded-lg shadow-md">
+          <h2 class="font-semibold text-lg mb-2">Événements à Venir</h2>
+          <p class="text-2xl font-bold text-purple-600">5</p>
+      </div>
+  </div>
+
+  <h2 class="text-2xl font-bold mb-4">Rapport d'Activité</h2>
+  <div class="bg-white p-4 rounded-lg shadow-md">
+      <p class="text-gray-600 mb-4">Graphique d'activité des utilisateurs au cours du dernier mois :</p>
+      <!-- Ici vous pouvez ajouter un graphique avec une bibliothèque comme Chart.js -->
+      <div class="h-64 bg-gray-200 rounded-md flex items-center justify-center">
+          <span class="text-gray-500">Graphique ici</span>
+      </div>
+  </div>
+</main>
 {% endblock %}
