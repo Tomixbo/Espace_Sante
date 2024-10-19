@@ -12,6 +12,9 @@
         body {
             font-family: 'Inter', sans-serif;
             overflow-x: hidden;
+            display: flex;
+            flex-direction: column; /* Pour organiser le contenu en colonne */
+            min-height: 100vh; /* Assurez-vous que le corps prend toute la hauteur de la fenêtre */
         }
 
         .glassmorphism {
@@ -62,11 +65,14 @@
         .timeline-item-content p {
             color: #6b7280;
         }
+
+        footer {
+            margin-top: auto; /* Pousse le footer vers le bas */
+        }
     </style>
 </head>
 
-<body class="bg-gradient-to-br from-purple-50 via-white to-pink-50 min-h-screen">
-    <div class="absolute inset-0 bg-gradient-to-br from-purple-200 via-white to-pink-200 opacity-50 z-0"></div>
+<body class="">
 
     <header class="container mx-auto px-4 py-6 relative z-10">
         <nav class="flex justify-between items-center">
@@ -88,7 +94,6 @@
         </nav>
     </header>
 
-   
     {% block content %} {% endblock %}
   
     <footer class="bg-gray-900 text-white py-6">
