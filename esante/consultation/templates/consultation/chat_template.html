@@ -1,12 +1,11 @@
 {% load static %}
 
-
 <div class="flex flex-col sm:flex-col lg:flex-row items-center justify-center h-full p-6 space-y-5 sm:space-y-5 lg:space-y-0 space-x-0 sm:space-x-0 lg:space-x-5">
-  <!-- React App Container for the other React component -->  
+  <!-- Conteneur de l'application React -->  
   <div id="react-app-chat" class="flex h-full w-[95%] rounded-lg overflow-hidden shadow-md bg-white"></div>
 
-  <!-- 2nd panel (hidden initially) -->
-  <div id="second-panel" class="hidden h-full w-[95%] bg-gray-200 rounded-lg overflow-hidden shadow-md  flex-col transition-all duration-500">
+  <!-- Deuxième panneau (initialement caché) -->
+  <div id="second-panel" class="hidden h-full w-[95%] bg-gray-200 rounded-lg overflow-hidden shadow-md flex-col transition-all duration-500">
     <div class="bg-gray-500 p-4 flex justify-between items-center">
       <select id="dropdown" class="bg-white text-gray-700 p-2 rounded-lg w-1/3">
         <option value="" selected disabled>---</option>
@@ -21,24 +20,25 @@
     <div id="ia-assistant" class="hidden h-full w-full">
       {% include 'consultation/ia_assistant.html' %}
     </div>
-    <!-- Div du bas qui prend le reste de la hauteur -->
+    <!-- Zone de contenu où le contenu chargé via AJAX sera inséré -->
     <div class="flex-grow m-4 overflow-auto" id="content-area">
       <!-- Le contenu pour les autres options sera inséré ici via AJAX -->
     </div>
   </div>
-
-
-  
 </div>
-  <!-- Button to show 2nd panel -->
-  <button id="show-panel-btn" class="absolute top-10 right-2 lg:right-4 h-10 w-10 bg-purple-800 text-white text-3xl rounded-full shadow-lg opacity-50 hover:opacity-100 transition duration-200 flex items-center justify-center">
-    <i class="fas fa-plus text-sm"></i>
-  </button>
+
+<!-- Bouton pour afficher le deuxième panneau -->
+<button id="show-panel-btn" class="absolute top-10 right-2 lg:right-4 h-10 w-10 bg-purple-800 text-white text-3xl rounded-full shadow-lg opacity-50 hover:opacity-100 transition duration-200 flex items-center justify-center">
+  <i class="fas fa-plus text-sm"></i>
+</button>
+
+<!-- Inclure le fichier JavaScript du planning -->
+<script src="{% static 'js/planning.js' %}"></script>
 
 <script>
   window.currentUser = "{{ request.user.username }}";  // Injecte le nom d'utilisateur actuel
   window.memberId = "{{ membre.id }}";  // Injecte l'ID du membre (sélectionné ou connecté)
-  window.userType = "{{request.user.user_type}}"; // 
+  window.userType = "{{ request.user.user_type }}"; // 
 
   const showPanelBtn = document.getElementById('show-panel-btn');
   const secondPanel = document.getElementById('second-panel');
@@ -47,44 +47,36 @@
   const contentArea = document.getElementById('content-area');
   const iaAssistantDiv = document.getElementById('ia-assistant');
 
-  // Show second panel and hide "+" button
+  // Afficher le deuxième panneau et masquer le bouton "+"
   showPanelBtn.addEventListener('click', function() {
     secondPanel.classList.remove('hidden');
     secondPanel.classList.add('flex');
     showPanelBtn.classList.add('hidden');
-
-    // Réduire la largeur de la première div
-    const reactAppChat = document.getElementById('react-app-chat');
-    // reactAppChat.style.width = 'calc(100% - 400px)'; // Ajuste selon la largeur de ton deuxième panneau
   });
 
-  // Close second panel and show "+" button
+  // Fermer le deuxième panneau et afficher le bouton "+"
   closePanelBtn.addEventListener('click', function() {
     secondPanel.classList.remove('flex');
     secondPanel.classList.add('hidden');
     showPanelBtn.classList.remove('hidden');
-
-    // Restaurer la largeur de la première div
-    const reactAppChat = document.getElementById('react-app-chat');
-   
   });
 
-  // Dropdown selection logic
+  // Logique de sélection du dropdown
   dropdown.addEventListener('change', function() {
     const value = this.value;
     const memberId = window.memberId;
 
-    // Gérer le cas où IA assistant est sélectionné
+    // Gérer le cas où l'IA assistant est sélectionné
     if (value === 'ia-assistant') {
       iaAssistantDiv.classList.remove('hidden');  // Afficher le div IA assistant
       contentArea.innerHTML = '';  // Vider le reste du contenu dans le content-area
-      contentArea.classList.add('hidden');  // Afficher le div IA assistant
+      contentArea.classList.add('hidden');
     } else {
       iaAssistantDiv.classList.add('hidden');  // Cacher le div IA assistant
       contentArea.classList.remove('hidden'); 
       let url = '';
 
-      // Charger les autres options via AJAX
+      // Déterminer l'URL à charger en fonction de la sélection
       if (value === 'medical-record') {
         url = `/dossier-medical/${memberId}/`;
       } else if (value === 'consultation-planning') {
@@ -96,7 +88,11 @@
         fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
           .then(response => response.text())
           .then(html => {
-            contentArea.innerHTML = html;  // Insérer le contenu HTML chargé
+            // Insérer le contenu HTML chargé
+            contentArea.innerHTML = html;
+
+            // Appeler la fonction d'initialisation après avoir inséré le contenu
+            initializePlanningContent();
           })
           .catch(error => {
             console.error('Erreur lors du chargement via AJAX:', error);
@@ -106,11 +102,11 @@
   });
 
   // Initialiser la sélection par défaut au chargement de la page
-  window.onload = function() {
+  window.addEventListener('load', function() {
     dropdown.value = "";  // Sélectionner l'option vide par défaut
-  };
+  });
 </script>
 
-<!-- Include the Vite-built React app -->
+<!-- Inclure l'application React construite avec Vite -->
 <link rel="stylesheet" href="{% static 'react/assets/index-01.css' %}">
 <script type="module" src="{% static 'react/assets/index-01.js' %}"></script>
