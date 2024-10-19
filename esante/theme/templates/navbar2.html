@@ -131,21 +131,21 @@
                         {% if user.user_type == 'membre'%}
                         <li class="mb-4">
                             <a href="{% url 'consultation' %}" class="nav-link flex items-center p-2 text-gray-700 hover:bg-purple-100 rounded-md">
-                                <i class="fas fa-users mr-3"></i>
+                                <i class="fa-solid fa-comment-medical mr-3"></i>
                                 <span>Consulter</span>
                             </a>
                         </li>
                         {% else %}
                         <li class="mb-4">
                             <a href="{% url 'liste_consultations' %}" class="nav-link flex items-center p-2 text-gray-700 hover:bg-purple-100 rounded-md">
-                                <i class="fas fa-users mr-3"></i>
+                                <i class="fa-solid fa-comment-medical mr-3"></i>
                                 <span>Consultations</span>
                             </a>
                         </li>
                         {% endif %}
                         <li class="mb-4">
                             <a href="{% url 'get_dossier_medical' user.id %}" class="nav-link flex items-center p-2 text-gray-700 hover:bg-purple-100 rounded-md">
-                                <i class="fas fa-cog mr-3"></i>
+                                <i class="fa-regular fa-folder-open mr-3"></i>
                                 <span>Dossier médical</span>
                             </a>
                         </li>

@@ -1,0 +1,30 @@
+{% extends 'navbar2.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mx-auto my-8 p-4">
+    <h2 class="text-2xl font-bold mb-4">Liste des Membres</h2>
+    <div class="w-full overflow-x-auto">
+        <table class="table-auto w-full text-left border-collapse">
+            <thead class="bg-gray-200">
+                <tr>
+                    <th class="px-2 md:px-4 py-2 border">Nom d'utilisateur</th>
+                    <th class="px-2 md:px-4 py-2 border">Email</th>
+                    <th class="px-2 md:px-4 py-2 border">Consulter Dossier</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for member in members %}
+                <tr class="hover:bg-gray-100">
+                    <td class="px-2 md:px-4 py-2 border">{{ member.username }}</td>
+                    <td class="px-2 md:px-4 py-2 border">{{ member.email }}</td>
+                    <td class="px-2 md:px-4 py-2 border">
+                        <a href="{% url 'get_dossier_medical' member.id %}" class="text-blue-500 hover:underline">Consulter</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
