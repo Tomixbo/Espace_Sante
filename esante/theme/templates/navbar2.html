@@ -122,12 +122,21 @@
                 <div class="text-gray-700 mb-5 pb-2 border-b-2 text-center">Bonjour, {{ user.username|title }}</div>
                 <nav>
                     <ul>
+                        {% if user.user_type == 'membre'%}
+                        <li class="mb-4">
+                            <a href="{% url 'home' %}" class="nav-link flex items-center p-2 text-gray-700 hover:bg-purple-100 rounded-md">
+                                <i class="fa-solid fa-house-user mr-3"></i>
+                                <span>Accueil</span>
+                            </a>
+                        </li>
+                        {% else %}
                         <li class="mb-4">
                             <a href="{% url 'home' %}" class="nav-link flex items-center p-2 text-gray-700 hover:bg-purple-100 rounded-md">
                                 <i class="fas fa-tachometer-alt mr-3"></i>
                                 <span>Tableau de bord</span>
                             </a>
                         </li>
+                        {% endif %}
                         {% if user.user_type == 'membre'%}
                         <li class="mb-4">
                             <a href="{% url 'consultation' %}" class="nav-link flex items-center p-2 text-gray-700 hover:bg-purple-100 rounded-md">
@@ -143,12 +152,21 @@
                             </a>
                         </li>
                         {% endif %}
+                        {% if user.user_type == 'membre'%}
                         <li class="mb-4">
                             <a href="{% url 'get_dossier_medical' user.id %}" class="nav-link flex items-center p-2 text-gray-700 hover:bg-purple-100 rounded-md">
                                 <i class="fa-regular fa-folder-open mr-3"></i>
                                 <span>Dossier médical</span>
                             </a>
                         </li>
+                        {% else %}
+                        <li class="mb-4">
+                            <a href="{% url 'list_members' %}" class="nav-link flex items-center p-2 text-gray-700 hover:bg-purple-100 rounded-md">
+                                <i class="fa-regular fa-folder-open mr-3"></i>
+                                <span>Dossiers médicaux</span>
+                            </a>
+                        </li>
+                        {% endif %}
                         <li class="mb-4">
                             <a href="{% url 'planning' %}" class="nav-link flex items-center p-2 text-gray-700 hover:bg-purple-100 rounded-md">
                                 <i class="fas fa-calendar-alt mr-3"></i>
