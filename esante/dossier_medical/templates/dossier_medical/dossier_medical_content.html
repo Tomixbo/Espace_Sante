@@ -1,87 +1,83 @@
-<div class="container mx-auto p-4 bg-white rounded-lg shadow-lg h-full flex flex-col">
-    <div class="flex justify-between items-center mb-4">
-        <h2 class="text-2xl font-bold adaptive-text">Dossier Médical : {{ membre.username|title }}</h2>
+<div class="container mx-auto p-6 ">
+    <div class="flex flex-col md:flex-row justify-between items-center mb-8">
+        <h2 class="text-3xl font-bold font-italic mx-4 text-gray-800 mb-4 md:mb-0">{{ membre.username|title }}</h2>
         
-        <!-- Bouton visible uniquement pour les médecins -->
         {% if user.user_type == 'medecin' %}
-        <button id="add-consultation-button" class="bg-purple-600 text-white py-2 px-4 rounded-lg shadow hover:bg-purple-700 transition duration-200 adaptive-text">
-            Ajouter une historique de consultation
+        <button id="add-consultation-button" class="bg-teal-600 text-white py-2 px-6 rounded-full shadow-lg hover:bg-teal-700 transition duration-300 ease-in-out transform hover:-translate-y-1 hover:scale-105">
+            Ajouter une consultation
         </button>
         {% endif %}
     </div>
 
-    <!-- Conteneur de défilement global pour le tableau -->
-    <div class="flex-grow min-h-0 overflow-auto">
-        <!-- Conteneur pour gérer le défilement horizontal -->
-
-            <table class="table-auto min-w-full text-left border-collapse adaptive-text">
-                <thead class="bg-gray-200">
-                    <tr>
-                        <th class="px-2 md:px-4 py-2 border">Date</th>
-                        <th class="px-2 md:px-4 py-2 border">Docteur</th>
-                        <th class="px-2 md:px-4 py-2 border">Établissement</th>
-                        <th class="px-2 md:px-4 py-2 border">Symptômes</th>
-                        <th class="px-2 md:px-4 py-2 border">Diagnostic</th>
-                        <th class="px-2 md:px-4 py-2 border">Prescriptions</th>
-                        <th class="px-2 md:px-4 py-2 border">Traitements</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for consultation in consultations %}
-                    <tr class="hover:bg-gray-100">
-                        <td class="px-2 md:px-4 py-2 border">{{ consultation.date|date:"d F Y" }}</td>
-                        <td class="px-2 md:px-4 py-2 border">{{ consultation.doctor.username }}</td>
-                        <td class="px-2 md:px-4 py-2 border">{{ consultation.establishment }}</td>
-                        <td class="px-2 md:px-4 py-2 border">{{ consultation.symptoms }}</td>
-                        <td class="px-2 md:px-4 py-2 border">{{ consultation.diagnosis }}</td>
-                        <td class="px-2 md:px-4 py-2 border">{{ consultation.prescriptions }}</td>
-                        <td class="px-2 md:px-4 py-2 border">{{ consultation.treatments }}</td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="7" class="text-center py-4">Aucune consultation trouvée.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for consultation in consultations %}
+        <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition duration-300 ease-in-out w-80 ">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <span class="text-sm font-semibold text-teal-600">{{ consultation.date|date:"d F Y" }}</span>
+                    <span class="text-sm text-gray-500">Dr. {{ consultation.doctor.username }}</span>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">{{ consultation.establishment }}</h3>
+                <div class="space-y-2">
+                    <p class="text-sm text-gray-600"><span class="font-medium text-gray-800">Symptômes :</span> {{ consultation.symptoms }}</p>
+                    <p class="text-sm text-gray-600"><span class="font-medium text-gray-800">Diagnostic :</span> {{ consultation.diagnosis }}</p>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-6 py-4">
+                <button class="text-teal-600 hover:text-teal-800 text-sm font-medium focus:outline-none" onclick="toggleDetails(this)">
+                    Voir plus de détails
+                </button>
+                <div class="hidden mt-4 space-y-2">
+                    <p class="text-sm text-gray-600"><span class="font-medium text-gray-800">Prescriptions :</span> {{ consultation.prescriptions }}</p>
+                    <p class="text-sm text-gray-600"><span class="font-medium text-gray-800">Traitements :</span> {{ consultation.treatments }}</p>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full text-center py-12">
+            <p class="text-gray-500 text-lg">Aucune consultation trouvée.</p>
+        </div>
+        {% endfor %}
     </div>
 </div>
 
-
-<!-- Fenêtre modale pour ajouter une consultation -->
-<div id="add-consultation-modal" class="fixed inset-0 bg-gray-800 bg-opacity-75  justify-center items-center z-50 hidden">
-    <div class="bg-white rounded-lg shadow-lg w-3/4 md:w-1/2 lg:w-1/3 p-6">
-        <h3 class="text-xl font-bold mb-4">Ajouter une Consultation</h3>
-        <form id="add-consultation-form" method="post">
+<!-- Modal pour ajouter une consultation -->
+<div id="add-consultation-modal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 hidden">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+        <h3 class="text-2xl font-bold mb-4 text-gray-800">Ajouter une Consultation</h3>
+        <form id="add-consultation-form" method="post" class="space-y-4">
             {% csrf_token %}
-            <div class="mb-4">
-                <label class="block text-gray-700">Date de Consultation</label>
-                <input type="date" name="date" class="w-full border border-gray-300 rounded-md p-2" required>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Date de Consultation</label>
+                <input type="date" name="date" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" required>
             </div>
-            <div class="mb-4">
-                <label class="block text-gray-700">Établissement</label>
-                <input type="text" name="establishment" class="w-full border border-gray-300 rounded-md p-2" required>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Établissement</label>
+                <input type="text" name="establishment" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" required>
             </div>
-            <div class="mb-4">
-                <label class="block text-gray-700">Symptômes</label>
-                <textarea name="symptoms" class="w-full border border-gray-300 rounded-md p-2" required></textarea>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Symptômes</label>
+                <textarea name="symptoms" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" rows="3" required></textarea>
             </div>
-            <div class="mb-4">
-                <label class="block text-gray-700">Diagnostic</label>
-                <textarea name="diagnosis" class="w-full border border-gray-300 rounded-md p-2" required></textarea>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Diagnostic</label>
+                <textarea name="diagnosis" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" rows="3" required></textarea>
             </div>
-            <div class="mb-4">
-                <label class="block text-gray-700">Prescriptions</label>
-                <textarea name="prescriptions" class="w-full border border-gray-300 rounded-md p-2"></textarea>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Prescriptions</label>
+                <textarea name="prescriptions" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" rows="3"></textarea>
             </div>
-            <div class="mb-4">
-                <label class="block text-gray-700">Traitements</label>
-                <textarea name="treatments" class="w-full border border-gray-300 rounded-md p-2"></textarea>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Traitements</label>
+                <textarea name="treatments" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" rows="3"></textarea>
             </div>
-            <div class="flex justify-end">
-                <button type="button" id="cancel-button" class="mr-4 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg py-2 px-4">Annuler</button>
-                <button type="submit" class="bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition duration-200">Ajouter</button>
+            <div class="flex justify-end space-x-3">
+                <button type="button" id="cancel-button" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Annuler
+                </button>
+                <button type="submit" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Ajouter
+                </button>
             </div>
         </form>
     </div>
@@ -91,6 +87,7 @@
     const addConsultationButton = document.getElementById('add-consultation-button');
     const modal = document.getElementById('add-consultation-modal');
     const cancelButton = document.getElementById('cancel-button');
+    const addConsultationForm = document.getElementById('add-consultation-form');
 
     addConsultationButton.addEventListener('click', () => {
         modal.classList.remove('hidden');
@@ -100,10 +97,8 @@
         modal.classList.add('hidden');
     });
 
-    const addConsultationForm = document.getElementById('add-consultation-form');
-
     addConsultationForm.addEventListener('submit', function(event) {
-        event.preventDefault(); // Empêche le rechargement de la page
+        event.preventDefault();
 
         const formData = new FormData(addConsultationForm);
         const memberId = "{{ membre.id }}";
@@ -118,23 +113,27 @@
         .then(response => response.json())
         .then(data => {
             if (data.message) {
-                // Ferme la fenêtre modale
                 modal.classList.add('hidden');
-                // Recharge la page pour afficher la nouvelle consultation
                 window.location.reload();
             }
         })
         .catch(error => console.error('Erreur:', error));
     });
 
-    addConsultationButton.addEventListener('click', () => {
-        modal.classList.remove('hidden');
-        modal.classList.add('flex'); // Ajouter flex ici pour afficher le modal correctement
+    // Fermer le modal en cliquant en dehors
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.classList.add('hidden');
+        }
     });
-    
-    cancelButton.addEventListener('click', () => {
-        modal.classList.add('hidden');
-        modal.classList.remove('flex'); // Supprimer flex pour masquer le modal
-    });
-    
+    function toggleDetails(button) {
+        const detailsDiv = button.nextElementSibling;
+        if (detailsDiv.classList.contains('hidden')) {
+            detailsDiv.classList.remove('hidden');
+            button.textContent = 'Masquer les détails';
+        } else {
+            detailsDiv.classList.add('hidden');
+            button.textContent = 'Voir plus de détails';
+        }
+    }
 </script>
