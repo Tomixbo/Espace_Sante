@@ -1,40 +1,51 @@
+{% load static %}
 {% load custom_tags %}
-<div class="container mx-auto my-8 p-4">
-    <div class="flex justify-between mb-4">
-        <a href="?week={{ week_offset|add:-1 }}" class="text-blue-500 hover:text-blue-700">&larr; Semaine Précédente</a>
-        {% with first_day=week_days.0 last_day=week_days|last %}
-            <h1 class="text-xl font-bold">
-                Planning des Consultations ({{ first_day.display }} - {{ last_day.display }})
-            </h1>
-        {% endwith %}
-        <a href="?week={{ week_offset|add:1 }}" class="text-blue-500 hover:text-blue-700">Semaine Suivante &rarr;</a>
+<div id="schedule-container" class="container mx-auto p-4"
+     data-is-doctor="{{ user_is_doctor|yesno:'true,false' }}"
+     data-csrf-token="{{ csrf_token }}"
+     data-user-id="{{ user.id }}">
+    <!-- Navigation -->
+    {% with first_day=week_days.0 last_day=week_days|last %}
+        <h1 class="font-bold text-center adaptive-text-title mb-2 flex-1 px-10">
+            Planning des Consultations ({{ first_day.display }} - {{ last_day.display }})
+        </h1>
+    {% endwith %}
+    <div class="flex flex-wrap justify-between items-center mb-4">
+        <a href="#" id="prev-week" data-week-offset="{{ week_offset|add:-1 }}" class="text-blue-500 hover:text-blue-700 adaptive-text mb-2">&larr; Semaine Précédente</a>
+        <a href="#" id="next-week" data-week-offset="{{ week_offset|add:1 }}" class="text-blue-500 hover:text-blue-700 adaptive-text mb-2">Semaine Suivante &rarr;</a>
     </div>
 
-    <div class="overflow-x-auto">
+    <!-- Vue Tableau -->
+    <div id="table-view" class="overflow-x-auto">
         <table class="min-w-full bg-white border">
             <thead>
                 <tr>
-                    <th class="border px-4 py-2 text-center"></th> <!-- Empty cell for hour labels -->
+                    <th class="border px-4 py-2 text-center adaptive-text"></th> <!-- Empty cell for hour labels -->
                     {% for day in week_days %}
-                        <th class="border px-4 py-2 text-center">{{ day.display }}</th>
+                        <th class="border px-4 py-2 text-center adaptive-text">{{ day.display }}</th>
                     {% endfor %}
                 </tr>
             </thead>
             <tbody>
                 {% for hour in hours %}
                     <tr>
-                        <td class="border px-4 py-2 text-center font-bold">{{ hour }}</td>
+                        <td class="border px-4 py-2 text-center font-bold adaptive-text">{{ hour }}</td>
                         {% for day in week_days %}
                             {% with consultation=consultations_by_day|get_item:day.display|get_item:hour %}
                                 {% if consultation %}
-                                    <td class="border px-4 py-2 text-center bg-green-500 text-white hover:bg-green-600 cursor-pointer" 
-                                        data-consultation-id="{{ consultation.id }}">
+                                    <td class="border px-4 py-2 text-center bg-green-500 text-white hover:bg-green-600 cursor-pointer adaptive-text"
+                                        data-consultation-id="{{ consultation.id }}"
+                                        data-consultation-doctor="{{ consultation.doctor.username }}"
+                                        data-consultation-patient="{{ consultation.patient.username }}"
+                                        data-consultation-facility="{{ consultation.facility }}"
+                                        data-consultation-start="{{ consultation.consultation_start_time|date:'Y-m-d\TH:i:s' }}"
+                                        data-consultation-end="{{ consultation.consultation_end_time|date:'Y-m-d\TH:i:s' }}">
                                         {{ consultation.doctor.username }} - {{ consultation.patient.username }}
                                     </td>
                                 {% else %}
-                                    <td class="border px-4 py-2 text-center bg-white hover:bg-gray-200 cursor-pointer relative"
+                                    <td class="border px-4 py-2 text-center bg-white hover:bg-gray-200 cursor-pointer relative adaptive-text"
                                         data-date="{{ day.date|date:'Y-m-d' }}" data-hour="{{ hour }}">
-                                        <span class="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300">Réserver</span>
+                                        <span class="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300 adaptive-text">Réserver</span>
                                     </td>
                                 {% endif %}
                             {% endwith %}
@@ -44,7 +55,41 @@
             </tbody>
         </table>
     </div>
-    
+
+    <!-- Vue Liste par Jour -->
+    <div id="list-view" class="space-y-2 h-[calc(60vh)] overflow-y-auto">
+        {% for day in week_days %}
+            <div class="mb-6">
+                <h2 class="text-lg font-bold mb-4 adaptive-text">{{ day.display }}</h2>
+                <div class="space-y-2">
+                    {% for hour in hours %}
+                        {% with consultation=consultations_by_day|get_item:day.display|get_item:hour %}
+                            {% if consultation %}
+                                <div class="border p-4 bg-green-500 text-white hover:bg-green-600 cursor-pointer adaptive-text"
+                                    data-consultation-id="{{ consultation.id }}"
+                                    data-consultation-doctor="{{ consultation.doctor.username }}"
+                                    data-consultation-patient="{{ consultation.patient.username }}"
+                                    data-consultation-facility="{{ consultation.facility }}"
+                                    data-consultation-start="{{ consultation.consultation_start_time|date:'Y-m-d\TH:i:s' }}"
+                                    data-consultation-end="{{ consultation.consultation_end_time|date:'Y-m-d\TH:i:s' }}">
+                                    <p class="font-bold adaptive-text">{{ hour }}</p>
+                                    <p class="adaptive-text">{{ consultation.doctor.username }} - {{ consultation.patient.username }}</p>
+                                </div>
+                            {% else %}
+                                <div class="border p-4 bg-white hover:bg-gray-200 cursor-pointer relative adaptive-text"
+                                    data-date="{{ day.date|date:'Y-m-d' }}" data-hour="{{ hour }}">
+                                    <p class="font-bold adaptive-text">{{ hour }}</p>
+                                    <p class="adaptive-text">Disponible</p>
+                                    <span class="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300 adaptive-text">Réserver</span>
+                                </div>
+                            {% endif %}
+                        {% endwith %}
+                    {% endfor %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
     <!-- Modal for consultation details -->
     <div id="consultation-modal" class="fixed z-10 inset-0 hidden overflow-y-auto">
         <div class="flex items-center justify-center min-h-screen px-4 text-center">
@@ -72,154 +117,32 @@
             </div>
         </div>
     </div>
-</div>
+    <!-- Hidden elements for patient and doctor selection -->
+    <div id="hidden-elements" style="display: none;">
+        <div id="patient-selection">
+            <label for="patient">Sélectionner un patient:</label>
+            <select id="patient">
+                {% for patient in patients %}
+                    <option value="{{ patient.id }}">{{ patient.username }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div id="doctor-selection">
+            <label for="doctor">Sélectionner un docteur:</label>
+            <select id="doctor">
+                {% for doctor in doctors %}
+                    <option value="{{ doctor.id }}">{{ doctor.username }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
 
+</div> <!-- Fermeture du schedule-container -->
+
+<!-- Inclure le fichier JavaScript du planning -->
+<script src="{% static 'js/planning.js' %}"></script>
 <script>
-    // Data containing the consultations
-    const consultations = {{ consultations_json|safe }};
-    const isDoctor = {{ user_is_doctor|yesno:'true,false' }}; // Check if the user is a doctor or patient
-
-    // Show consultation modal when clicking on an existing consultation
-    document.querySelectorAll('[data-consultation-id]').forEach(td => {
-        td.addEventListener('click', function() {
-            const consultation = consultations.find(c => c.id == this.dataset.consultationId);
-            
-            if (consultation) {
-                // Format the date and time
-                const consultationDate = new Date(consultation.consultation_start_time).toLocaleDateString('fr-FR', {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                });
-
-                const startTime = new Date(consultation.consultation_start_time).toLocaleTimeString('fr-FR', {
-                    hour: '2-digit',
-                    minute: '2-digit'
-                }).replace(':00', 'h');
-
-                const endTime = new Date(consultation.consultation_end_time).toLocaleTimeString('fr-FR', {
-                    hour: '2-digit',
-                    minute: '2-digit'
-                }).replace(':00', 'h');
-
-                const formattedDateTime = `${consultationDate}, de ${startTime} à ${endTime}`;
-
-                // Display the formatted date and time
-                document.getElementById('modal-start-time').textContent = formattedDateTime;
-
-                // Display the doctor, patient, and facility
-                document.getElementById('modal-doctor').textContent = consultation.doctor;
-                document.getElementById('modal-patient').textContent = consultation.patient;
-                document.getElementById('modal-facility').textContent = consultation.facility;
-
-                document.getElementById('consultation-modal').classList.remove('hidden');
-            }
-        });
+    document.addEventListener('DOMContentLoaded', function() {
+        initializePlanningContent();
     });
-
-    // Handle empty slot clicks for creating a consultation
-    document.querySelectorAll('[data-date]').forEach(td => {
-        td.addEventListener('click', function() {
-            const date = this.dataset.date;  // Now correctly populated
-            const hour = this.dataset.hour;
-
-            document.getElementById('modal-date').textContent = date;  // Set the date in the modal
-            document.getElementById('modal-hour').textContent = hour;
-    
-            let selectionHTML = '';
-    
-            if (isDoctor) {
-                selectionHTML = `
-                    <label for="patient">Sélectionner un patient:</label>
-                    <select id="patient">
-                        {% for patient in patients %}
-                            <option value="{{ patient.id }}">{{ patient.username }}</option>
-                        {% endfor %}
-                    </select>
-                `;
-            } else {
-                selectionHTML = `
-                    <label for="doctor">Sélectionner un docteur:</label>
-                    <select id="doctor">
-                        {% for doctor in doctors %}
-                            <option value="{{ doctor.id }}">{{ doctor.username }}</option>
-                        {% endfor %}
-                    </select>
-                `;
-            }
-    
-            document.getElementById('user-selection').innerHTML = selectionHTML;
-            document.getElementById('booking-modal').classList.remove('hidden');
-        });
-    });
-    
-
-    // Close modals
-    document.getElementById('close-modal').addEventListener('click', function() {
-        document.getElementById('consultation-modal').classList.add('hidden');
-    });
-
-    document.getElementById('close-modal-booking').addEventListener('click', function() {
-        document.getElementById('booking-modal').classList.add('hidden');
-    });
-
-    // Confirm booking
-document.getElementById('confirm-booking').addEventListener('click', function() {
-    const date = document.getElementById('modal-date').textContent;  // Should be 'YYYY-MM-DD'
-    const hour = document.getElementById('modal-hour').textContent;  // 'HHh - HHh' format
-
-    let userSelection = '';
-
-    if (isDoctor) {
-        userSelection = document.getElementById('patient').value;
-    } else {
-        userSelection = document.getElementById('doctor').value;
-    }
-
-    // Parse the start and end time from the hour range
-    const startHour = hour.split(' - ')[0].replace('h', '');  // E.g., '9h' becomes '9'
-    const endHour = hour.split(' - ')[1].replace('h', '');    // E.g., '10h' becomes '10'
-
-    // Pad hours to ensure two digits
-    const startHourPadded = startHour.padStart(2, '0');
-    const endHourPadded = endHour.padStart(2, '0');
-
-    // Construct valid datetime strings
-    const consultation_start_time = `${date}T${startHourPadded}:00:00`;  // 'YYYY-MM-DDTHH:00:00'
-    const consultation_end_time = `${date}T${endHourPadded}:00:00`;      // 'YYYY-MM-DDTHH:00:00'
-
-    // Send the data to the server
-    fetch('/create-consultation/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': '{{ csrf_token }}',
-        },
-        body: JSON.stringify({
-            doctor: isDoctor ? '{{ user.id }}' : userSelection,
-            patient: isDoctor ? userSelection : '{{ user.id }}',
-            consultation_start_time: consultation_start_time,
-            consultation_end_time: consultation_end_time,
-            facility: 'Online'
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'success') {
-            document.getElementById('booking-modal').classList.add('hidden');
-            location.reload();
-        } else {
-            alert('Erreur lors de la réservation: ' + data.message);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Une erreur s\'est produite.');
-    });
-});
-
-
-    
-    
 </script>

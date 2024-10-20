@@ -9,6 +9,8 @@ from accounts.models import CustomUser
 from django.middleware.csrf import get_token
 import json
 import locale
+import pytz
+from django.utils import timezone
 
 @csrf_exempt
 @login_required
@@ -52,7 +54,8 @@ def create_consultation(request):
 def consultation_schedule(request):
     # Set locale to French
     locale.setlocale(locale.LC_TIME, "fr_FR.UTF-8")  # For Windows, use "French" instead of "fr_FR.UTF-8"
-
+    # Fuseau horaire de Madagascar
+    madagascar_tz = pytz.timezone("Indian/Antananarivo")
 
     try:
         week_offset = int(request.GET.get('week', 0))
@@ -81,6 +84,8 @@ def consultation_schedule(request):
     consultations_by_day = {day['display']: {hour: None for hour in hours} for day in week_days}
 
     for consultation in consultations:
+        consultation.consultation_start_time = timezone.localtime(consultation.consultation_start_time, madagascar_tz)
+        consultation.consultation_end_time = timezone.localtime(consultation.consultation_end_time, madagascar_tz)
         day_display = consultation.consultation_start_time.strftime("%A %d/%m/%Y")
         hour = f"{consultation.consultation_start_time.hour}h - {consultation.consultation_start_time.hour + 1}h"
         if day_display in consultations_by_day:
