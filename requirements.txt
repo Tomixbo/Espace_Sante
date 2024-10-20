@@ -8,3 +8,4 @@ whitenoise
 aiohttp
 twisted[tls,http2]
 djangorestframework
+pytz
